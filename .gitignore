@@ -1,1 +1,5 @@
 /bin/
+
+# ignore eclipse files
+*.classpath
+*.project
