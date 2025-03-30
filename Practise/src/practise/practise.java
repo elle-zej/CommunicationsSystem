@@ -8,5 +8,7 @@ public class practise{
 		//tell me where are you looking 
 		System.out.println("Wasssssssup trying to figure out how to use git");
 		System.out.println("Push Farming1");
+		
+		System.out.println("How do you use it bro");
 	}
 }
