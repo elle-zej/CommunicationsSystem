@@ -3,6 +3,8 @@ package a;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -15,11 +17,13 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
 public class GUI {
+	
 	public static void main(String[] args) {
 		loginWindow();
+		//loginWindow.setVisible(true);
 		//defaultWindow();
 	}
-	
+
 	private static void loginWindow() {
 	    // Create the frame
 		//main frame to hold the panel
@@ -70,7 +74,23 @@ public class GUI {
 	    buttonPanel.add(loginButton);
 	    mainPanel.add(buttonPanel);
 	    
+	    loginButton.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				frame.dispose();
+				homePage();
+				
+			}
+		});
+	    
 	    frame.setVisible(true); // Make visible
+	    
+	    //return frame;
+	}
+	
+	private static void homePage() {
+		JFrame mainFrame = defaultWindow();
 	}
 	//default frame that will be reused 
 	private static JFrame defaultWindow(){
@@ -78,7 +98,7 @@ public class GUI {
 	    JFrame frame = new JFrame("SEND");
 	    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	    //we have a frame now
-	    frame.setSize(700, 700);      
+	    frame.setSize(700, 600);      
 	    frame.setLocationRelativeTo(null);  // Center on screen
 	    //u could create a frame that is not visible
 	    frame.setVisible(true);	// make visible
