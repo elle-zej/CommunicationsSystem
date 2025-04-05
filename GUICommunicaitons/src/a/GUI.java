@@ -78,6 +78,9 @@ public class GUI {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				//when logged in
+				//disposes login window
+				//directs to the homepage
 				frame.dispose();
 				homePage();
 				
