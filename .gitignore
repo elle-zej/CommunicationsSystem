@@ -1,6 +1,4 @@
 /bin/
 
-# ignore eclipse files
-*.classpath
-*.project
-/.metadata/
+.DS_Store
+
