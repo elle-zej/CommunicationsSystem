@@ -1,11 +1,15 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.io.Serializable;
 
-public class Message {
-	private User sender;
-	private List<User> receiver;
-	private String content;
-	private String timestamp;
+public class Message implements Serializable {
+	//check line below
+	private static final long serialVersionUID = 1L;
+	
+	private final User sender;
+	private final List<User> receiver;
+	private final String content;
+	private final String timestamp;
 	
 	Message(User sender, List<User> receiver, String content){
 		this.sender = sender;
