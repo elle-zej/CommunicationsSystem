@@ -3,3 +3,4 @@
 # ignore eclipse files
 *.classpath
 *.project
+/.metadata/
