@@ -5,8 +5,11 @@ import java.util.List;
 
 public class Server {
 	public static void main(String[] args) throws IOException {
-		ServerSocket ss = new ServerSocket(1);
-		Socket socket = ss.accept();
+		ServerSocket ss = new ServerSocket(1234);
+		while(true) {
+			Socket client = ss.accept();
+			ClientHandler handler = new ClientHandler(client);
+		}
 		
 	}
 }
