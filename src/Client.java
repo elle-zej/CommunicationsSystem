@@ -19,8 +19,8 @@ public class Client {
 		// change place holders below:
 		String host = "1";
 		int port = 1;
-		
-		Socket socket = new Socket(host, port);
+		System.out.println("Hello");
+		//Socket socket = new Socket(host, port);
 	}
 
 }
