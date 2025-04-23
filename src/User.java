@@ -14,6 +14,11 @@ public class User {
 		this.role = role;
 	}
 	
+	User(String username, String password){
+		this.username = username;
+		this.password = password;
+	}
+	
 	public Role getRole(){
 		return this.role;
 	}
@@ -24,6 +29,14 @@ public class User {
 	
 	public String getEmployeeID() {
 		return this.employeeID;
+	}
+	
+	public String getUsername(){
+		return this.username;
+	}
+	
+	public String getPassword() {
+		return this.password;
 	}
 	
 }

@@ -4,18 +4,90 @@ import java.net.Socket;
 import java.util.List;
 import java.util.Scanner;
 
-import javax.naming.AuthenticationException;
-
 public class Server {
 	
+	public static void main(String[] args) throws IOException, ClassNotFoundException {
+		ServerSocket server = null;
+		try {
+			server = new ServerSocket(1200);
+			server.setReuseAddress(true);
+				
+			while(true) {
+				Socket client = server.accept();
+				
+				//create an instance of the client handler
+				ClientHandler clientHandler = new ClientHandler(client);
+				
+				//new thread for the client starts so the server  
+				// handle other incoming requests
+				new Thread(clientHandler).start();
+			}
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+		finally {
+			if (server != null) {
+				try {
+					server.close();
+				}
+				catch (IOException e) {
+					e.printStackTrace();
+			}
+		}
+	}
+		
+}
+
+ private static class ClientHandler implements Runnable {
+	private final Socket clientSocket;
 	//filename that stores the login credentials
 	private static String loginInfoFile = "loginInfo.txt";
 	
+	// Constructor
+	public ClientHandler(Socket socket)
+	{
+		this.clientSocket = socket;
+	}
+
+	public void run(){
+		
+        ObjectOutputStream out = null;
+        ObjectInputStream in = null;
+		try {
+			out = new ObjectOutputStream(clientSocket.getOutputStream());
+			in = new ObjectInputStream(clientSocket.getInputStream());
+			
+			//try to login
+			
+			}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+		finally {
+			try {
+				if (out != null) {
+					out.close();
+				}
+				if (in != null) {
+					in.close();
+					clientSocket.close();
+				}
+			}
+			catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
 	//returns true if the user name password is valid
 	//returns false if 
-    public static boolean authenticateUser(String userName, String password) {
+    public static boolean authenticateUser(User user) {
     	
     	try {
+    		
+    		
+
     		//open the file with login credentials
     		File loginFile = new File(loginInfoFile);
     		
@@ -37,11 +109,13 @@ public class Server {
     			String pass = wordScanner.next();
     			
     			//if id and password combo exist, return true
-    			if(userName.equals(id) && password.equals(pass)) {
+    			if(user.getUsername().equals(id) && user.getPassword().equals(pass)) {
+    				lineScanner.close();
     				return true;
     			}
     			
     		}
+    		lineScanner.close();
     	}
     	catch (Exception e) {
 			System.out.println("File not found!");
@@ -50,72 +124,6 @@ public class Server {
 		return false;
     	
     }
-    
-	public static void main(String[] args) throws IOException {
-		ServerSocket ss = new ServerSocket(1234);
-		while(true) {
-			Socket client = ss.accept();
-			//create an instance of the client handler
-			ClientHandler clientHandler = new ClientHandler(client);
-			
-			//new thread for the client starts so the server  
-			// handle other incoming requests
-			new Thread(clientHandler).start();
-		}
-	}
 
- private static class ClientHandler implements Runnable {
-	private final Socket clientSocket;
-
-	// Constructor
-	public ClientHandler(Socket socket)
-	{
-		this.clientSocket = socket;
-	}
-
-	public void run()
-	{
-		PrintWriter out = null;
-		BufferedReader in = null;
-		try {
-				
-			// get the outputstream of client
-			out = new PrintWriter(
-				clientSocket.getOutputStream(), true);
-
-			// get the inputstream of client
-			in = new BufferedReader(
-				new InputStreamReader(
-					clientSocket.getInputStream()));
-
-			String line;
-			while ((line = in.readLine()) != null) {
-
-				// writing the received message from
-				// client
-				System.out.printf(
-					" Sent from the client: %s\n",
-					line);
-				out.println(line);
-			}
-		}
-		catch (IOException e) {
-			e.printStackTrace();
-		}
-		finally {
-			try {
-				if (out != null) {
-					out.close();
-				}
-				if (in != null) {
-					in.close();
-					clientSocket.close();
-				}
-			}
-			catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-	}
 }
 }
