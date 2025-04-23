@@ -10,12 +10,14 @@ public class Message implements Serializable {
 	private final List<User> receiver;
 	private final String content;
 	private final String timestamp;
+	private Status status;
 	
-	Message(User sender, List<User> receiver, String content){
+	Message(User sender, List<User> receiver, String content, Status status){
 		this.sender = sender;
 		this.receiver = receiver;
 		this.content = content;
 		this.timestamp = "now";
+		this.status = status;
 	}
 	
 	public String getTimestamp() {
@@ -34,4 +36,7 @@ public class Message implements Serializable {
 		return this.content;
 	}
 	
+	public Status getStatus() {
+		return this.status;
+	}
 }
