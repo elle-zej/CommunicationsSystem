@@ -2,6 +2,7 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;
+import java.util.Scanner;
 
 public class Server {
 	
@@ -40,7 +41,9 @@ public class Server {
 
  private static class ClientHandler implements Runnable {
 	private final Socket clientSocket;
-
+	//filename that stores the login credentials
+	private static String loginInfoFile = "loginInfo.txt";
+	
 	// Constructor
 	public ClientHandler(Socket socket)
 	{
@@ -54,6 +57,8 @@ public class Server {
 		try {
 			out = new ObjectOutputStream(clientSocket.getOutputStream());
 			in = new ObjectInputStream(clientSocket.getInputStream());
+			
+			//try to login
 			
 			}
 		catch (IOException e) {
@@ -74,5 +79,51 @@ public class Server {
 			}
 		}
 	}
+	
+	//returns true if the user name password is valid
+	//returns false if 
+    public static boolean authenticateUser(User user) {
+    	
+    	try {
+    		
+    		
+
+    		//open the file with login credentials
+    		File loginFile = new File(loginInfoFile);
+    		
+    		//line scanner to scan each line of the file
+    		Scanner lineScanner = new Scanner(loginFile);
+    		
+    		//iterate until the end of file
+    		while(lineScanner.hasNextLine()) {
+    			//get the lines in the file
+    			String line = lineScanner.nextLine();
+    			
+    			//word scanner to scan individual words
+    			//id and password separated by white space in txt file
+    			Scanner wordScanner = new Scanner(line);
+    			
+    			//first scan the id
+    			String id = wordScanner.next();
+    			//scan the password
+    			String pass = wordScanner.next();
+    			
+    			//if id and password combo exist, return true
+    			if(user.getUsername().equals(id) && user.getPassword().equals(pass)) {
+    				lineScanner.close();
+    				return true;
+    			}
+    			
+    		}
+    		lineScanner.close();
+    	}
+    	catch (Exception e) {
+			System.out.println("File not found!");
+		}
+    	//returns false if no such username password combination found
+		return false;
+    	
+    }
+
 }
 }
