@@ -111,6 +111,7 @@ public class Server {
     			//if id and password combo exist, return true
     			if(user.getUsername().equals(id) && user.getPassword().equals(pass)) {
     				lineScanner.close();
+    				wordScanner.close();
     				return true;
     			}
     			
