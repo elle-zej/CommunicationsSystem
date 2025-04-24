@@ -1,0 +1,5 @@
+Sus1,pas1,Sushant,EMPLOYEE,EMP1
+Tim2,paop,Tim,EMPLOYEE,EMP2
+Jeze3,house,Jezelle,EMPLOYEE,EMP3
+Mark0,passw,Mark,IT,IT00
+

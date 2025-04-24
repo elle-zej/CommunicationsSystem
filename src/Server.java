@@ -79,10 +79,17 @@ public class Server {
 			}
 		}
 	}
+	public static void userLogin(User user) {
+		//if the user is successfully logged in
+		//load their conversations
+		if(authenticateUser(user)) {
+			
+		}
+	}
 	
 	//returns true if the user name password is valid
 	//returns false if 
-    public static boolean authenticateUser(User user) {
+    private static boolean authenticateUser(User user) {
     	
     	try {
     		
