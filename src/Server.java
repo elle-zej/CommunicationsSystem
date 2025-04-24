@@ -42,7 +42,7 @@ public class Server {
  private static class ClientHandler implements Runnable {
 	private final Socket clientSocket;
 	//filename that stores the login credentials
-	private static String loginInfoFile = "loginInfo.txt";
+	private static String loginInfoFile = "EmpInfo.txt";
 	
 	// Constructor
 	public ClientHandler(Socket socket)
@@ -79,13 +79,6 @@ public class Server {
 			}
 		}
 	}
-	public static void userLogin(User user) {
-		//if the user is successfully logged in
-		//load their conversations
-		if(authenticateUser(user)) {
-			
-		}
-	}
 	
 	//returns true if the user name password is valid
 	//returns false if 
@@ -93,14 +86,12 @@ public class Server {
     	
     	try {
     		
-    		
-
+   
     		//open the file with login credentials
     		File loginFile = new File(loginInfoFile);
     		
     		//line scanner to scan each line of the file
     		Scanner lineScanner = new Scanner(loginFile);
-    		
     		//iterate until the end of file
     		while(lineScanner.hasNextLine()) {
     			//get the lines in the file
@@ -109,11 +100,11 @@ public class Server {
     			//word scanner to scan individual words
     			//id and password separated by white space in txt file
     			Scanner wordScanner = new Scanner(line);
-    			
+    			wordScanner.useDelimiter(",");
     			//first scan the id
-    			String id = wordScanner.next();
+    			String id = wordScanner.next().trim();
     			//scan the password
-    			String pass = wordScanner.next();
+    			String pass = wordScanner.next().trim();
     			
     			//if id and password combo exist, return true
     			if(user.getUsername().equals(id) && user.getPassword().equals(pass)) {
