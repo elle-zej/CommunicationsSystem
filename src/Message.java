@@ -1,22 +1,28 @@
 import java.util.ArrayList;
 import java.util.List;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 public class Message implements Serializable {
-	//check line below
-	private static final long serialVersionUID = 1L;
-	
 	private final User sender;
-	private final List<User> receiver;
+	private final List<String> receiver;
 	private final String content;
 	private final String timestamp;
 	private Status status;
 	
-	Message(User sender, List<User> receiver, String content, Status status){
+	Message(User sender, List<String> receiver, String content, Status status){
 		this.sender = sender;
 		this.receiver = receiver;
 		this.content = content;
-		this.timestamp = "now";
+		this.timestamp = LocalDateTime.now().toString();
+		this.status = status;
+	}
+	
+	Message(User sender, String content, Status status){
+		this.sender = sender;
+		this.receiver = new ArrayList<>();
+		this.content = content;
+		this.timestamp = "";
 		this.status = status;
 	}
 	
@@ -24,7 +30,7 @@ public class Message implements Serializable {
 		return this.timestamp;
 	}
 	
-	public List<User> getReciever() {
+	public List<String> getReceiver() {
 		return this.receiver;
 	}
 	
