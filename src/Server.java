@@ -9,7 +9,8 @@ import java.util.Scanner;
 
 import javax.lang.model.element.NestingKind;
 import javax.print.attribute.UnmodifiableSetException;
-import java.net.InetAddress; 
+import java.net.InetAddress;
+
 public class Server {
 	
 	public static void main(String[] args) throws IOException, ClassNotFoundException {
@@ -335,4 +336,3 @@ public class Server {
     private static void viewConversationsHandler(User user) {System.out.println("hi");}
 
     }
-
