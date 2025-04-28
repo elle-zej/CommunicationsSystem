@@ -5,12 +5,19 @@ import java.util.List;
 public class Conversation implements Serializable{
 	private List<Message> conversationHistory;
 	private List<User> members;
+	private List<String> membersString;
 	private int conversationID;
 	private static int IDCount = 0;
 	
 	Conversation(List<Message> conversationHistory, List<User> members){
 		this.conversationHistory = conversationHistory;
 		this.members = members;
+		this.conversationID = IDCount++;
+	}
+	
+	Conversation(List<String> members){
+		this.conversationHistory = new ArrayList<>();
+		this.membersString = members;
 		this.conversationID = IDCount++;
 	}
 	
