@@ -18,6 +18,14 @@ public class Message implements Serializable {
 		this.status = status;
 	}
 	
+	Message(String content, Status status){
+		this.sender = null;
+		this.receiver = null;
+		this.content = content;
+		this.status = status;
+		this.timestamp = "";
+	}
+	
 	Message(User sender, String content, Status status){
 		this.sender = sender;
 		this.receiver = new ArrayList<>();
@@ -44,5 +52,14 @@ public class Message implements Serializable {
 	
 	public Status getStatus() {
 		return this.status;
+	}
+	
+	public List<String> getMembers(){
+		List<String> members = new ArrayList<String>();
+		for (int i =0; i < this.receiver.size(); i++) {
+			members.add(this.receiver.get(i).trim().toUpperCase());
+		}
+		members.add(this.sender.getFullName().trim().toUpperCase());
+		return members;
 	}
 }
