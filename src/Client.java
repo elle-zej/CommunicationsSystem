@@ -1,4 +1,5 @@
 import java.io.*;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +18,9 @@ public class Client {
 	
 	public static void main(String[] args) throws IOException, ClassNotFoundException {
 		Scanner sc = new Scanner(System.in);
-        Socket socket = new Socket("localhost", 1200);
+		InetAddress localhost = InetAddress.getLocalHost();
+		String IP = localhost.getHostAddress().trim();
+        Socket socket = new Socket(IP, 1200);
         
        //get object input and also output objects
         ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
@@ -51,8 +54,8 @@ public class Client {
         if(role.equals(Role.Employee)) {
             while(true) {
             	System.out.println("Enter choice:"
-            			+ "1. Send Message"
-            			+ "2. View Conversations");
+            			+ "\n1. Send Message"
+            			+ "\n2. View Conversations");
             	int choice = sc.nextInt();
             	//consume \n
             	sc.nextLine();
@@ -90,7 +93,10 @@ public class Client {
 	private static void onSendMessage(User user, Scanner sc, ObjectOutputStream out, ObjectInputStream in)
 			throws IOException, ClassNotFoundException {
 		List<String> members = new ArrayList<String>();
-		
+		//send request to server
+		Message sendMessageRequest = new Message(user, "sendMessageRequest", Status.request);
+		out.writeObject(sendMessageRequest);
+		out.flush();
 		System.out.println("Enter recipients separated by commas: ");
 		//ASCII?
 		String input = sc.nextLine();
@@ -113,6 +119,19 @@ public class Client {
 		//GUI pop-up
 		if(serverMessage.getStatus().equals(Status.fail)){
 			System.out.println(serverMessage.getContent());
+		}
+		
+		System.out.println("Enter 1 to return to main menu: ");
+		
+		int choice = sc.nextInt(); sc.nextLine(); 
+		while(true) {
+			if(choice == 1) {
+				return;
+			}
+			else {
+				System.out.println("Enter 1 to exit");
+				choice = sc.nextInt(); sc.nextLine(); 
+			}
 		}
 	}
 
@@ -191,7 +210,7 @@ public class Client {
 	public static void onViewAllConversations(User user, Scanner sc, ObjectOutputStream out, ObjectInputStream in)
 		throws IOException, ClassNotFoundException {
 		//Send request to viewConversations
-		Message viewConversationsRequest = new Message(user, "viewConversationsRequest", Status.request);
+		Message viewConversationsRequest = new Message(user, "viewAllConversationsRequest", Status.request);
 		out.writeObject(viewConversationsRequest);
 		out.flush();
 		//server sends message confirmation
