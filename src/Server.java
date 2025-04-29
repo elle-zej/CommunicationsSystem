@@ -4,6 +4,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Scanner;
 
@@ -12,8 +14,11 @@ import javax.print.attribute.UnmodifiableSetException;
 import java.net.InetAddress;
 
 public class Server {
+	//will store the client name and their output stream so, messages can be redirected to through the correct stream
+	private static HashMap<String, ObjectOutputStream> streamsInfo = new HashMap<String, ObjectOutputStream>();
 	
 	public static void main(String[] args) throws IOException, ClassNotFoundException {
+		
 		ServerSocket server = null;
 		try {
 			InetAddress localhost = InetAddress.getLocalHost();
@@ -81,13 +86,22 @@ public class Server {
 					 User userLogin = (User) recievedObject;
 					//if authentication is successful
 					if(authenticateUser(userLogin)) {
+						//login was successful so the client is now online
+						//so add to the streamsInfo
+						streamsInfo.put(user.getFullName().toUpperCase(), out);
+						
 						//create message to indicate login was a success
 						Message message = new Message("Login Successful!", Status.success);
 						//get all the user info
 						user = getUserInfo(userLogin);
 						
+						//since user successfully logged in,
+						//add them(username/objectoutputStream) as they are a valid/authenticated member
+						streamsInfo.put(user.getFullName(), out);
+						
 						out.writeObject(message);
 						out.writeObject(user);
+						
 						break;
 					}
 					else {
@@ -241,10 +255,33 @@ public class Server {
 		return user;
     	
     }
-    
+    private void sendChat(Message sentMessage) throws IOException, ClassNotFoundException {
+    	List<String> receivers = sentMessage.getReceiver();
+    	receivers.forEach((String reciever) -> {
+    		//if the reciever is currently online, send the message through the stream
+    		if(streamsInfo.containsKey(reciever.toUpperCase())) {
+    			//get the output stream of the reciever to send message
+    			ObjectOutputStream out = streamsInfo.get(reciever.toUpperCase());
+    			try {
+					out.writeObject(sentMessage);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+    		}
+    	});
+    	//returns control to where sendChat() was called
+    	return;
+    }
     private void sendMessageHandler(User user,  ObjectOutputStream out,  ObjectInputStream in)
     		throws IOException, ClassNotFoundException {
     	Message sentMessage = (Message) in.readObject();
+    
+    	//if the recievers are online, message sent to them 
+    	//sentMessage contains all info about sender and reciever,
+    	//so only sentMessage required as the parameter
+    	
+    	sendChat(sentMessage);
     	//process fields of sent message
     	User sender = sentMessage.getSender();
     	String nameOfSender = sender.getFullName();
