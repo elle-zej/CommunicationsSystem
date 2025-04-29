@@ -1,0 +1,18 @@
+Conversation History
+
+Conversation 0
+Members: JEZELLE,MAX
+Chat:
+[2025-04-28T17:07:31.363279] Jezelle: hi
+[2025-04-28T17:07:50.003212] Jezelle: new
+[2025-04-28T17:07:59.073432] Jezelle: jolly
+
+Conversation 1
+Members: JEZELLE,RICK
+Chat:
+[2025-04-28T17:07:38.741736] Jezelle: yo
+
+Conversation 2
+Members: JEZELLE,POLLY
+Chat:
+[2025-04-28T17:07:45.609731] Jezelle: sup
