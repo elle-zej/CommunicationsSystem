@@ -86,10 +86,7 @@ public class Server {
 					 User userLogin = (User) recievedObject;
 					//if authentication is successful
 					if(authenticateUser(userLogin)) {
-						//login was successful so the client is now online
-						//so add to the streamsInfo
-						streamsInfo.put(user.getFullName().toUpperCase(), out);
-						
+												
 						//create message to indicate login was a success
 						Message message = new Message("Login Successful!", Status.success);
 						//get all the user info
@@ -98,6 +95,9 @@ public class Server {
 						//since user successfully logged in,
 						//add them(username/objectoutputStream) as they are a valid/authenticated member
 						streamsInfo.put(user.getFullName(), out);
+						
+						//delete this 
+						System.out.println("Online on the server: " + streamsInfo.keySet());
 						
 						out.writeObject(message);
 						out.writeObject(user);
@@ -197,8 +197,7 @@ public class Server {
     	return false;
     }
     
-    private User getUserInfo(User user) {
-    	User returnedUser = null;
+    private User getUserInfo(User user) {    	User returnedUser = null;
     	try {
     		
     		//open the file with login credentials
