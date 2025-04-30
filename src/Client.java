@@ -142,10 +142,10 @@ public class Client {
 		out.writeObject(viewConversationsRequest);
 		out.flush();
 		//server sends message confirmation
-		Message serverMessage = (Message) in.readObject();
-		if(serverMessage.getStatus().equals(Status.fail)) {
-			System.out.println(serverMessage.getContent());
-		}
+//		Message serverMessage = (Message) in.readObject();
+//		if(serverMessage.getStatus().equals(Status.fail)) {
+//			System.out.println(serverMessage.getContent());
+//		}
 		//take in all conversations
 		@SuppressWarnings("unchecked")
 		List<Conversation> conversations = (List<Conversation>) in.readObject();
@@ -187,14 +187,7 @@ public class Client {
 				String msg = sc.nextLine().trim();
 				List<String> receivers = conversations.get(conversationChoice).getRecipients(user);
 				Message message = new Message(user, receivers, msg, Status.request);
-				out.writeObject(message);
-				out.flush();
-				//server sends message confirmation
-				Message serverConfirmationMessage = (Message) in.readObject();
-				//GUI pop-up
-				if(serverConfirmationMessage.getStatus().equals(Status.fail)){
-					System.out.println(serverConfirmationMessage.getContent());
-				}
+				sendMessage(message, out, in);
 				}
 			if(choice == 2){return;}
 			else {
@@ -230,7 +223,7 @@ public class Client {
 		int conversationChoice = sc.nextInt(); sc.nextLine();
 		
 		System.out.println("Conversation " + conversations.get(conversationChoice).getConversationIDString() + "\n");
-		System.out.println(conversations.get(conversationChoice).getMessagesString() + "\n\n");
+		System.out.println(conversations.get(conversationChoice).getMessagesString());
 		
 		System.out.println("Enter 1 to return to main menu: ");
 		
@@ -244,6 +237,16 @@ public class Client {
 				choice = sc.nextInt(); sc.nextLine(); 
 			}
 		}
+		
+	}
+	
+	public static void sendMessage(Message message, ObjectOutputStream out, ObjectInputStream in) 
+			throws IOException, ClassNotFoundException {
+		Scanner sc = new Scanner(System.in);
+		Message sendMessageRequest = new Message("sendMessageRequest", Status.request);
+		out.writeObject(sendMessageRequest);
+		out.flush();
+		
 		
 	}
 		

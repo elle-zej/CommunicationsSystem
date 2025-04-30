@@ -1,4 +1,4 @@
-Conversation History
+Conversation-History
 
 Conversation 0
 Members: JEZELLE,MAX
@@ -11,8 +11,40 @@ Conversation 1
 Members: JEZELLE,RICK
 Chat:
 [2025-04-28T17:07:38.741736] Jezelle: yo
+[2025-04-29T15:14:00.166147] Jezelle: hello
 
 Conversation 2
 Members: JEZELLE,POLLY
 Chat:
 [2025-04-28T17:07:45.609731] Jezelle: sup
+[2025-04-29T15:15:11.950359] Jezelle: juice
+[2025-04-29T19:50:14.538568] Jezelle: het
+
+Conversation 0
+Members: JEZELLE,SUSHANT
+Chat:
+[2025-04-29T15:11:02.981970] Sushant: hello Jezelle
+[2025-04-29T15:17:31.136700] Jezelle: rock on
+
+Conversation 1
+Members: PAUL,SUSHANT
+Chat:
+[2025-04-29T15:16:56.073191] Sushant: hello
+[2025-04-29T15:18:18.054924] Sushant: hello paul my name is sushant
+
+Conversation 2
+Members: JEZELLE,PAUL
+Chat:
+[2025-04-29T15:17:16.672635] Jezelle: hello paul
+
+Conversation 0
+Members: JEZELLE,PEPPA
+Chat:
+[2025-04-29T15:25:03.924502] Jezelle: hi peppa
+[2025-04-29T15:28:03.662274] Jezelle: does this add to the end
+[2025-04-29T20:42:40.681274] Jezelle: yellow!
+
+Conversation 0
+Members: JEZELLE,RAMBLING RANDY
+Chat:
+[2025-04-29T20:44:07.436334] Jezelle: shirimp 

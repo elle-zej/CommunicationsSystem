@@ -3,13 +3,18 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Scanner;
 import java.net.InetAddress;
 
 public class Server {
-
+	//will store the client name and their output stream so, messages can be redirected to through the correct stream
+	private static HashMap<String, ObjectOutputStream> streamsInfo = new HashMap<String, ObjectOutputStream>();
+  
 	public static void main(String[] args) throws IOException, ClassNotFoundException {
+		
 		ServerSocket server = null;
 		try {
 			InetAddress localhost = InetAddress.getLocalHost();
@@ -78,6 +83,13 @@ public class Server {
 							Message message = new Message("Login Successful!", Status.success);
 							// get all the user info
 							user = getUserInfo(userLogin);
+              
+             //since user successfully logged in,
+						//add them(username/objectoutputStream) as they are a valid/authenticated member
+						streamsInfo.put(user.getFullName(), out);
+						//delete this 
+						System.out.println("Online on the server: " + streamsInfo.keySet());
+						
 							// send both objects back to client
 							out.writeObject(message);
 							out.writeObject(user);
@@ -169,6 +181,25 @@ public class Server {
 			// return false;
 			return false;
 		}
+    
+    private void sendChat(Message sentMessage) throws IOException, ClassNotFoundException {
+    	List<String> receivers = sentMessage.getReceiver();
+    	receivers.forEach((String reciever) -> {
+    		//if the receiver is currently online, send the message through the stream
+    		if(streamsInfo.containsKey(reciever.toUpperCase())) {
+    			//get the output stream of the receiver to send message
+    			ObjectOutputStream out = streamsInfo.get(reciever.toUpperCase());
+    			try {
+					out.writeObject(sentMessage);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+    		}
+    	});
+    	//returns control to where sendChat() was called
+    	return;
+    }
 
 		private User getUserInfo(User user) {
 			User returnedUser = null;
@@ -230,6 +261,14 @@ public class Server {
 				throws IOException, ClassNotFoundException {
 			//take in message from client
 			Message sentMessage = (Message) in.readObject();
+      
+      
+      //if the recievers are online, message sent to them 
+    	//sentMessage contains all info about sender and reciever,
+    	//so only sentMessage required as the parameter
+    	
+    	sendChat(sentMessage);
+      
 			// process fields of sent message
 			User sender = sentMessage.getSender();
 			String nameOfSender = sender.getFullName();
@@ -255,7 +294,7 @@ public class Server {
 				String line = lineScanner.nextLine();
 				fileLines.add(line);
 			}
-
+			
 			List<String> membersList = new ArrayList<>();
 			//go through each of the lines
 			for (int i = 0; i < fileLines.size(); i++) {
@@ -282,6 +321,9 @@ public class Server {
 						//add the new message to that line
 						fileLines.add(i, newMsg);
 					}
+					else {
+						fileLines.add(newMsg);
+					}
 					//write all the changes to the file
 					FileWriter writer = new FileWriter(conversationHistory);
 					for (int j = 0; j < fileLines.size(); j++) {
@@ -300,7 +342,7 @@ public class Server {
 
 			// if not found
 			Conversation conversation = new Conversation(membersOfMessage);
-			conversation.addMessage(sentMessage);
+			//conversation.addMessage(sentMessage);
 			// add to file lines
 			fileLines.add("\nConversation " + conversation.getConversationIDString());
 			fileLines.add("Members: " + String.join(",", membersOfMessage));
@@ -320,14 +362,72 @@ public class Server {
 
 		}
 
-		// check if conversation exists by checking if members match
-
-		// if conversation exists, add to it
-		// else make new conversation
+	private static void viewConversationsHandler(User user, ObjectOutputStream out, ObjectInputStream in) 
+			throws IOException, ClassNotFoundException{
+		String name = user.getFullName().toUpperCase();
+		
+		// open conversation history file
+		File conversationHistoryFile = new File(conversationHistory);
+		Scanner lineScanner = new Scanner(conversationHistoryFile);
+		
+		// process lines of file
+		List<String> fileLines = new ArrayList<>();
+		
+		while (lineScanner.hasNextLine()) {
+			// get all lines in the file
+			String line = lineScanner.nextLine();
+			fileLines.add(line);
+		}
+		
+		List<Conversation> allConversations = new ArrayList<>();
+		List<String> membersList = new ArrayList<>();
+		int ID = 0;
+		//go through each of the lines
+		for (int i = 0; i < fileLines.size(); i++) {
+			String line = fileLines.get(i);
+			//extract all conversations from file
+			if (line.startsWith("Conversation ")) {
+				String conversationLine = line;
+				//take conversation and store in array
+				String conversationID = conversationLine.split(" ")[1];
+				//take each conversation and its ID
+				ID = Integer.parseInt(conversationID);
+				 membersList = new ArrayList<>();
+			}
+			else if (line.startsWith("Members")) {
+				String membersLine = line;
+				//take all members and store in array
+				String[] members = membersLine.split(": ")[1].trim().split(",");
+				//sort the array in alphabetical order
+				Arrays.sort(members);
+				//turn array into list (for comparison of membersOfMessage sent by client)
+				membersList = Arrays.asList(members);
+			}
+			else if(line.startsWith("Chat:")){
+				i++;
+				List<String> messages = new ArrayList<>();
+				while (i < fileLines.size() && !fileLines.get(i).startsWith("Conversation")) {
+					line = fileLines.get(i).trim();
+					if(!line.equals("")) {
+					messages.add(line);
+					}
+					i++;
+				}
+				i--;
+				Conversation conversation = new Conversation(ID, new ArrayList<>(membersList), messages);
+				allConversations.add(conversation);
+			}
+		}
+		
+		System.out.println(allConversations.size());
+		
+		out.writeObject(allConversations);
+		
+		}
+		
+		
+		
+		
+		}
 	}
 
-	private static void viewConversationsHandler(User user, ObjectOutputStream out, ObjectInputStream in) {
-		System.out.println("hi");
-	}
-
-}
