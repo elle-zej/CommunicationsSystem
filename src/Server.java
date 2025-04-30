@@ -114,7 +114,7 @@ public class Server {
 						viewConversationsHandler(user, out, in);
 						break;
 					case "viewAllConversationsRequest":
-						System.out.println("hi");
+						viewAllConversationsHandler(user, out, in);
 						break;
 					default:
 						break;
@@ -418,15 +418,75 @@ public class Server {
 				allConversations.add(conversation);
 			}
 		}
+		//check which conversations contain user
+		List<Conversation> conversationsWithUser = new ArrayList<>();
+		for (int i =0; i< allConversations.size(); i++) {
+			if (allConversations.get(i).getMembersList().contains(name)) {
+				conversationsWithUser.add(allConversations.get(i));
+			}
+		}
+		out.writeObject(conversationsWithUser);
+		}
+	private static void viewAllConversationsHandler(User user, ObjectOutputStream out, ObjectInputStream in) 
+			throws IOException, ClassNotFoundException{
+		String name = user.getFullName().toUpperCase();
 		
-		System.out.println(allConversations.size());
+		// open conversation history file
+		File conversationHistoryFile = new File(conversationHistory);
+		Scanner lineScanner = new Scanner(conversationHistoryFile);
 		
-		out.writeObject(allConversations);
+		// process lines of file
+		List<String> fileLines = new ArrayList<>();
 		
+		while (lineScanner.hasNextLine()) {
+			// get all lines in the file
+			String line = lineScanner.nextLine();
+			fileLines.add(line);
 		}
 		
-		
-		
+		List<Conversation> allConversations = new ArrayList<>();
+		List<String> membersList = new ArrayList<>();
+		int ID = 0;
+		//go through each of the lines
+		for (int i = 0; i < fileLines.size(); i++) {
+			String line = fileLines.get(i);
+			//extract all conversations from file
+			if (line.startsWith("Conversation ")) {
+				String conversationLine = line;
+				//take conversation and store in array
+				String conversationID = conversationLine.split(" ")[1];
+				//take each conversation and its ID
+				ID = Integer.parseInt(conversationID);
+				 membersList = new ArrayList<>();
+			}
+			else if (line.startsWith("Members")) {
+				String membersLine = line;
+				//take all members and store in array
+				String[] members = membersLine.split(": ")[1].trim().split(",");
+				//sort the array in alphabetical order
+				Arrays.sort(members);
+				//turn array into list (for comparison of membersOfMessage sent by client)
+				membersList = Arrays.asList(members);
+			}
+			else if(line.startsWith("Chat:")){
+				i++;
+				List<String> messages = new ArrayList<>();
+				while (i < fileLines.size() && !fileLines.get(i).startsWith("Conversation")) {
+					line = fileLines.get(i).trim();
+					if(!line.equals("")) {
+					messages.add(line);
+					}
+					i++;
+				}
+				i--;
+				Conversation conversation = new Conversation(ID, new ArrayList<>(membersList), messages);
+				allConversations.add(conversation);
+			}
+		}
+		out.writeObject(allConversations);
+		}
+	
+	
 		
 		}
 	}

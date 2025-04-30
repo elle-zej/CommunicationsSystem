@@ -22,10 +22,10 @@ public class Conversation implements Serializable{
 		this.conversationID = IDCount++;
 	}
 	
-	Conversation(int ConversationID, List<String> membersList, List<String> conversationHistory){
+	Conversation(int conversationID, List<String> membersList, List<String> conversationHistory){
 		this.conversationHistory = conversationHistory;
 		this.membersString = membersList;
-		this.conversationID = IDCount++;
+		this.conversationID = conversationID;
 	}
 	
 	public void addMessage(Message message) {
@@ -50,7 +50,7 @@ public class Conversation implements Serializable{
 	}
 	
 	public List<String> getRecipients(User user){
-		String sender = user.getFullName();
+		String sender = user.getFullName().toUpperCase();
 		List<String> recipientsString = new ArrayList<String>();
 		for(int i = 0; i< this.membersString.size(); i++) {
 			if(!this.membersString.get(i).equals(sender)) {
@@ -61,16 +61,30 @@ public class Conversation implements Serializable{
 		return recipientsString;
 	}
 	
-	public List<String> getMembersStringList(){
-		List<String> membersStringList = new ArrayList<String>();
-		for(int i = 0; i< this.members.size(); i++) {
-			String name = this.members.get(i).getFullName();
-			membersString.add(name);
+	public String getRecipientsString (User user) {
+		String sender = user.getFullName().toUpperCase();
+		String recipients = "";
+		List<String> recipientsString = new ArrayList<String>();
+		for(int i = 0; i< this.membersString.size(); i++) {
+			if(!this.membersString.get(i).equals(sender)) {
+			String name = this.membersString.get(i);
+			recipientsString.add(name);
+			}
 		}
 		
-		return membersStringList;
+		for(int i = 0; i < recipientsString.size(); i++) {
+			recipients += recipientsString.get(i);
+			if (i < recipientsString.size() -1) {
+				recipients += ", ";
+			}
+		}
+		
+		return recipients;
 	}
 	
+	public List<String> getMembersList(){
+		return membersString;
+	}
 	public String getConversationIDString() {
 		return Integer.toString(this.conversationID);
 	}

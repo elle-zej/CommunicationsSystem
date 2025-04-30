@@ -73,9 +73,9 @@ public class Client {
         else {
 	        while(true) {
 	        	System.out.println("Enter choice:"
-	        			+ "1. Send Message"
-	        			+ "2. View Conversations"
-	        			+ "3. View ALL Conversations");
+	        			+ "\n1. Send Message"
+	        			+ "\n2. View Conversations"
+	        			+ "\n3. View ALL Conversations");
 	        	int choice = sc.nextInt();
 	        	//consume \n
 	        	sc.nextLine();
@@ -141,27 +141,23 @@ public class Client {
 		Message viewConversationsRequest = new Message(user, "viewConversationsRequest", Status.request);
 		out.writeObject(viewConversationsRequest);
 		out.flush();
-		//server sends message confirmation
-//		Message serverMessage = (Message) in.readObject();
-//		if(serverMessage.getStatus().equals(Status.fail)) {
-//			System.out.println(serverMessage.getContent());
-//		}
+
 		//take in all conversations
 		@SuppressWarnings("unchecked")
 		List<Conversation> conversations = (List<Conversation>) in.readObject();
 		
 		System.out.println("Chats: ");
 		for(int i =0; i < conversations.size(); i++) {
-			System.out.println(i + conversations.get(i).getMembersString());
+			System.out.println(i + " " + conversations.get(i).getRecipientsString(user));
 		}
 		
 		int conversationChoice = sc.nextInt(); sc.nextLine();		
 		//print all elements of the conversation
-		System.out.println("Conversation " + conversations.get(conversationChoice).getConversationIDString() + "\n");
-		System.out.println(conversations.get(conversationChoice).getMessagesString() + "\n\n");
-		System.out.println("Enter: \n "
-				+ "1. to send message \n"
-				+ "2. return to main menu");
+		System.out.println("\nConversation " + conversations.get(conversationChoice).getConversationIDString());
+		System.out.println(conversations.get(conversationChoice).getMessagesString());
+		System.out.println("Enter: \n"
+				+ "1 to send message \n"
+				+ "2 return to main menu");
 		//check user input
 		int choice;
 		while(true) {
@@ -181,15 +177,25 @@ public class Client {
 			}
 		}
 		
+		//server sends message confirmation
+//		Message serverMessage = (Message) in.readObject();
+//		if(serverMessage.getStatus().equals(Status.fail)) {
+//			System.out.println(serverMessage.getContent());
+//		}
+		
 		while(true) {
 			if(choice == 1) {
 				System.out.println("Enter message: ");
 				String msg = sc.nextLine().trim();
 				List<String> receivers = conversations.get(conversationChoice).getRecipients(user);
+				for (int i =0; i < receivers.size(); i++) {
+					System.out.println(receivers.get(i));
+				}
 				Message message = new Message(user, receivers, msg, Status.request);
 				sendMessage(message, out, in);
+				return;
 				}
-			if(choice == 2){return;}
+			else if(choice == 2){return;}
 			else {
 				System.out.println("Enter 1 or 2");
 				choice = sc.nextInt();
@@ -207,17 +213,17 @@ public class Client {
 		out.writeObject(viewConversationsRequest);
 		out.flush();
 		//server sends message confirmation
-		Message serverMessage = (Message) in.readObject();
-		if(serverMessage.getStatus().equals(Status.fail)) {
-			System.out.println(serverMessage.getContent());
-		}
+//		Message serverMessage = (Message) in.readObject();
+//		if(serverMessage.getStatus().equals(Status.fail)) {
+//			System.out.println(serverMessage.getContent());
+//		}
 		
 		@SuppressWarnings("unchecked")
 		List<Conversation> conversations = (List<Conversation>) in.readObject();
 		
 		System.out.println("Chats: ");
 		for(int i =0; i < conversations.size(); i++) {
-			System.out.println(i + conversations.get(i).getMembersString());
+			System.out.println(i + " " + conversations.get(i).getMembersString());
 		}
 		
 		int conversationChoice = sc.nextInt(); sc.nextLine();
@@ -244,9 +250,18 @@ public class Client {
 			throws IOException, ClassNotFoundException {
 		Scanner sc = new Scanner(System.in);
 		Message sendMessageRequest = new Message("sendMessageRequest", Status.request);
+		
 		out.writeObject(sendMessageRequest);
 		out.flush();
 		
+		out.writeObject(message);
+		out.flush();
+		
+		Message serverMessage = (Message) in.readObject();
+		//GUI pop-up
+		if(serverMessage.getStatus().equals(Status.fail)){
+			System.out.println(serverMessage.getContent());
+		}
 		
 	}
 		
