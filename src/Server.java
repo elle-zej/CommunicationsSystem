@@ -185,9 +185,9 @@ public class Server {
     private void sendChat(Message sentMessage) throws IOException, ClassNotFoundException {
     	List<String> receivers = sentMessage.getReceiver();
     	receivers.forEach((String reciever) -> {
-    		//if the reciever is currently online, send the message through the stream
+    		//if the receiver is currently online, send the message through the stream
     		if(streamsInfo.containsKey(reciever.toUpperCase())) {
-    			//get the output stream of the reciever to send message
+    			//get the output stream of the receiver to send message
     			ObjectOutputStream out = streamsInfo.get(reciever.toUpperCase());
     			try {
 					out.writeObject(sentMessage);
@@ -294,7 +294,7 @@ public class Server {
 				String line = lineScanner.nextLine();
 				fileLines.add(line);
 			}
-
+			
 			List<String> membersList = new ArrayList<>();
 			//go through each of the lines
 			for (int i = 0; i < fileLines.size(); i++) {
@@ -321,6 +321,9 @@ public class Server {
 						//add the new message to that line
 						fileLines.add(i, newMsg);
 					}
+					else {
+						fileLines.add(newMsg);
+					}
 					//write all the changes to the file
 					FileWriter writer = new FileWriter(conversationHistory);
 					for (int j = 0; j < fileLines.size(); j++) {
@@ -339,7 +342,7 @@ public class Server {
 
 			// if not found
 			Conversation conversation = new Conversation(membersOfMessage);
-			conversation.addMessage(sentMessage);
+			//conversation.addMessage(sentMessage);
 			// add to file lines
 			fileLines.add("\nConversation " + conversation.getConversationIDString());
 			fileLines.add("Members: " + String.join(",", membersOfMessage));
@@ -358,10 +361,73 @@ public class Server {
 			out.writeObject(messageSent);
 
 		}
+
+	private static void viewConversationsHandler(User user, ObjectOutputStream out, ObjectInputStream in) 
+			throws IOException, ClassNotFoundException{
+		String name = user.getFullName().toUpperCase();
+		
+		// open conversation history file
+		File conversationHistoryFile = new File(conversationHistory);
+		Scanner lineScanner = new Scanner(conversationHistoryFile);
+		
+		// process lines of file
+		List<String> fileLines = new ArrayList<>();
+		
+		while (lineScanner.hasNextLine()) {
+			// get all lines in the file
+			String line = lineScanner.nextLine();
+			fileLines.add(line);
+		}
+		
+		List<Conversation> allConversations = new ArrayList<>();
+		List<String> membersList = new ArrayList<>();
+		int ID = 0;
+		//go through each of the lines
+		for (int i = 0; i < fileLines.size(); i++) {
+			String line = fileLines.get(i);
+			//extract all conversations from file
+			if (line.startsWith("Conversation ")) {
+				String conversationLine = line;
+				//take conversation and store in array
+				String conversationID = conversationLine.split(" ")[1];
+				//take each conversation and its ID
+				ID = Integer.parseInt(conversationID);
+				 membersList = new ArrayList<>();
+			}
+			else if (line.startsWith("Members")) {
+				String membersLine = line;
+				//take all members and store in array
+				String[] members = membersLine.split(": ")[1].trim().split(",");
+				//sort the array in alphabetical order
+				Arrays.sort(members);
+				//turn array into list (for comparison of membersOfMessage sent by client)
+				membersList = Arrays.asList(members);
+			}
+			else if(line.startsWith("Chat:")){
+				i++;
+				List<String> messages = new ArrayList<>();
+				while (i < fileLines.size() && !fileLines.get(i).startsWith("Conversation")) {
+					line = fileLines.get(i).trim();
+					if(!line.equals("")) {
+					messages.add(line);
+					}
+					i++;
+				}
+				i--;
+				Conversation conversation = new Conversation(ID, new ArrayList<>(membersList), messages);
+				allConversations.add(conversation);
+			}
+		}
+		
+		System.out.println(allConversations.size());
+		
+		out.writeObject(allConversations);
+		
+		}
+		
+		
+		
+		
+		}
 	}
 
-	private static void viewConversationsHandler(User user, ObjectOutputStream out, ObjectInputStream in) {
-		System.out.println("hi");
-	}
-
-}
