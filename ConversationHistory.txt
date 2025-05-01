@@ -26,6 +26,9 @@ Members: JEZELLE,SUSHANT
 Chat:
 [2025-04-29T15:11:02.981970] Sushant: hello Jezelle
 [2025-04-29T15:17:31.136700] Jezelle: rock on
+[2025-04-30T10:49:28.864635600] Sushant: Hi how are you
+[2025-05-01T00:17:34.376876900] Jezelle: Damn this actually works huh
+[2025-05-01T13:27:03.824590700] Sushant: crazy this works
 
 Conversation 1
 Members: PAUL,SUSHANT
@@ -55,3 +58,8 @@ Conversation 0
 Members: BERTHA,BILLY,BOB,JEZELLE
 Chat:
 [2025-04-29T21:31:42.932293] Jezelle: hello how are you all?
+
+Conversation 0
+Members: SUSHANT,TIM
+Chat:
+[2025-04-30T10:49:44.948056900] Sushant: Wassup tim
