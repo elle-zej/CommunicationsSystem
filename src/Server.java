@@ -152,6 +152,11 @@ public class Server {
 					default:
 						break;
 					}
+					
+					if(requestMsg.equals("logOutRequest")) {
+						//break off the while loop
+						break;
+					}
 				}
 
 			} catch (IOException e) {
@@ -582,12 +587,8 @@ public class Server {
 			//remove the user from the map nad close the streams
 			streamsInfo.remove(user.getFullName());
 			try {
-				if(out != null) {
-					out.close();
-				}
-				if(in != null) {
-					in.close();
-				}
+				out.close();
+				in.close();
 				clientSocket.close();
 			}catch (Exception e) {
 				// TODO: handle exception
