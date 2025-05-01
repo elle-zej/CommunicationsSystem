@@ -78,8 +78,9 @@ public class Client {
 
 		}
 	}
-
-	public static void main(String[] args) throws IOException, ClassNotFoundException {
+	
+	public void runClientLoop() throws IOException, ClassNotFoundException {
+		
 		Scanner sc = new Scanner(System.in);
 		InetAddress localhost = InetAddress.getLocalHost();
 		String IP = localhost.getHostAddress().trim();
@@ -93,73 +94,11 @@ public class Client {
 			User user = null;
 			
 			// login
-			Client client = new Client(null);
-			client.login(out, in);
+			login(out, in);
 
 			User completeUser = (User) in.readObject();
-			// get user's role
-			Role role = completeUser.getRole();
-
-			boolean loggedIn = true;
-
-			// logged in so now main menu of the program
-			while (loggedIn) {
-				// if role is Employee
-				if (role.equals(Role.Employee)) {
-
-					System.out.println("Enter choice:" + "\n1. Send Message" + "\n2. View Conversations"
-							+ "\n3. View Online" + "\n4. Log Out");
-					int choice = sc.nextInt();
-					// consume \n
-					sc.nextLine();
-
-					switch (choice) {
-					case 1:
-						onSendMessage(completeUser, sc, out, in);
-						break;
-					case 2:
-						onViewConversations(completeUser, sc, out, in);
-						break;
-					case 3:
-						onViewOnline(completeUser, sc, out, in);
-						break;
-					case 4:
-						onLogOut(completeUser, sc, out, in);
-						loggedIn = false;
-						break;
-					}
-
-				}
-				// if role is ITUser
-				else {
-
-					System.out.println("Enter choice:" + "\n1. Send Message" + "\n2. View Conversations"
-							+ "\n3. View ALL Conversations" + "\n4. View Online" + "\n5. Log Out");
-					int choice = sc.nextInt();
-					// consume \n
-					sc.nextLine();
-
-					switch (choice) {
-					case 1:
-						onSendMessage(completeUser, sc, out, in);
-						break;
-					case 2:
-						onViewConversations(completeUser, sc, out, in);
-						break;
-					case 3:
-						onViewAllConversations(completeUser, sc, out, in);
-						break;
-					case 4:
-						onViewOnline(completeUser, sc, out, in);
-						break;
-					case 5:
-						onLogOut(completeUser, sc, out, in);
-						loggedIn = false;
-						break;
-
-					}
-				}
-			}
+			userSession(completeUser, sc, out, in);
+			
 			System.out.println("SuccessFull logout");
 			System.out.println("Do you want to login in ? (Y/N): ");
 			String choice = sc.nextLine();
@@ -171,6 +110,77 @@ public class Client {
 				System.out.println("Welcome to the login page again!! \n");
 			}
 		}
+	}
+	//user is provided with options 
+	public void userSession(User completeUser, Scanner sc, ObjectOutputStream out, ObjectInputStream in) throws ClassNotFoundException, IOException {
+		// get user's role
+					Role role = completeUser.getRole();
+
+					boolean loggedIn = true;
+
+					// logged in so now main menu of the program
+					while (loggedIn) {
+						// if role is Employee
+						if (role.equals(Role.Employee)) {
+
+							System.out.println("Enter choice:" + "\n1. Send Message" + "\n2. View Conversations"
+									+ "\n3. View Online" + "\n4. Log Out");
+							int choice = sc.nextInt();
+							// consume \n
+							sc.nextLine();
+
+							switch (choice) {
+							case 1:
+								onSendMessage(completeUser, sc, out, in);
+								break;
+							case 2:
+								onViewConversations(completeUser, sc, out, in);
+								break;
+							case 3:
+								onViewOnline(completeUser, sc, out, in);
+								break;
+							case 4:
+								onLogOut(completeUser, sc, out, in);
+								loggedIn = false;
+								break;
+							}
+
+						}
+						// if role is ITUser
+						else {
+
+							System.out.println("Enter choice:" + "\n1. Send Message" + "\n2. View Conversations"
+									+ "\n3. View ALL Conversations" + "\n4. View Online" + "\n5. Log Out");
+							int choice = sc.nextInt();
+							// consume \n
+							sc.nextLine();
+
+							switch (choice) {
+							case 1:
+								onSendMessage(completeUser, sc, out, in);
+								break;
+							case 2:
+								onViewConversations(completeUser, sc, out, in);
+								break;
+							case 3:
+								onViewAllConversations(completeUser, sc, out, in);
+								break;
+							case 4:
+								onViewOnline(completeUser, sc, out, in);
+								break;
+							case 5:
+								onLogOut(completeUser, sc, out, in);
+								loggedIn = false;
+								break;
+
+							}
+						}
+			}
+	}
+	public static void main(String[] args) throws IOException, ClassNotFoundException {
+		
+		Client client = new Client(null);
+		client.runClientLoop();
 
 	}
 
