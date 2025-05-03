@@ -1,5 +1,6 @@
 import java.io.*;
 import java.net.InetAddress;
+import java.net.*;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,69 +22,12 @@ public class Client {
 		return this.user;
 	}
 
-	private static class MessageListener implements Runnable {
-
-		private User user;
-		private ObjectOutputStream out;
-		private ObjectInputStream in;
-
-		public MessageListener(User user, ObjectOutputStream out, ObjectInputStream in) {
-			this.user = user;
-			this.out = out;
-			this.in = in;
-		}
-
-		@Override
-		public void run() {
-			try {
-				boolean done = false;
-				while (!done) {
-					Message receivedMessage = (Message) in.readObject();
-					System.out.println("\n[Message from " + receivedMessage.getSender().getFullName() + "]: "
-							+ receivedMessage.getContent());
-
-				}
-			} catch (Exception e) {
-				// TODO: handle exception
-			}
-
-		}
-
-	}
-
-	public void login(ObjectOutputStream out, ObjectInputStream in) {
-		Scanner sc = new Scanner(System.in);
-		boolean loggingIn = true;
-		while (loggingIn) {
-			System.out.println("Enter username: ");
-			String username = sc.nextLine().trim();
-			System.out.println("Enter password: ");
-			String password = sc.nextLine().trim();
-			user = new User(username, password);
-			try {
-				out.writeObject(user);
-				// read in if success message or not
-				Message serverMessage = (Message) in.readObject();
-				System.out.println(serverMessage.getContent());
-				if (serverMessage.getStatus().equals(Status.success)) {
-					loggingIn = false;
-				}
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (ClassNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-
-		}
-	}
-
 	public static void main(String[] args) throws IOException, ClassNotFoundException {
 		Scanner sc = new Scanner(System.in);
 		InetAddress localhost = InetAddress.getLocalHost();
 		String IP = localhost.getHostAddress().trim();
-		
+		//String IP = "192.168.56.1";
+		//"134.154.23.147"
 
 		while (true) {
 			Socket socket = new Socket(IP, 1200);
@@ -91,17 +35,20 @@ public class Client {
 			ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
 			ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
 			User user = null;
-			
 			// login
 			Client client = new Client(null);
 			client.login(out, in);
+			
 
 			User completeUser = (User) in.readObject();
 			// get user's role
 			Role role = completeUser.getRole();
 
 			boolean loggedIn = true;
-
+			
+			//MessageListener synchronousMessages = new MessageListener(socket, completeUser, out, in);
+			//new Thread(synchronousMessages).start();
+			
 			// logged in so now main menu of the program
 			while (loggedIn) {
 				// if role is Employee
@@ -121,7 +68,7 @@ public class Client {
 						onViewConversations(completeUser, sc, out, in);
 						break;
 					case 3:
-						onViewOnline(completeUser, sc, out, in);
+						onViewOnline(completeUser, sc, out, in, socket);
 						break;
 					case 4:
 						onLogOut(completeUser, sc, out, in);
@@ -150,7 +97,7 @@ public class Client {
 						onViewAllConversations(completeUser, sc, out, in);
 						break;
 					case 4:
-						onViewOnline(completeUser, sc, out, in);
+						onViewOnline(completeUser, sc, out, in, socket);
 						break;
 					case 5:
 						onLogOut(completeUser, sc, out, in);
@@ -173,8 +120,36 @@ public class Client {
 		}
 
 	}
+	
+	public void login(ObjectOutputStream out, ObjectInputStream in) {
+		Scanner sc = new Scanner(System.in);
+		boolean loggingIn = true;
+		while (loggingIn) {
+			System.out.println("Enter username: ");
+			String username = sc.nextLine().trim();
+			System.out.println("Enter password: ");
+			String password = sc.nextLine().trim();
+			user = new User(username, password);
+			try {
+				out.writeObject(user);
+				// read in if success message or not
+				Message serverMessage = (Message) in.readObject();
+				System.out.println(serverMessage.getContent());
+				if (serverMessage.getStatus().equals(Status.success)) {
+					loggingIn = false;
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 
-	public static void onViewOnline(User completeUser, Scanner sc, ObjectOutputStream out, ObjectInputStream in) {
+		}
+	}
+
+	public static void onViewOnline(User completeUser, Scanner sc, ObjectOutputStream out, ObjectInputStream in, Socket socket) {
 		List<User> onlineUsers = new ArrayList<User>();
 
 		// request the server to view online people
@@ -207,6 +182,7 @@ public class Client {
 				String recipient = onlineUsers.get(choice - 1).getFullName();
 
 				System.out.println("Starting a chat with " + recipient + ": ");
+				startChatSession(completeUser, recipient, sc, out, in, socket);
 
 			}
 		} catch (IOException | ClassNotFoundException e) {
@@ -216,7 +192,21 @@ public class Client {
 
 	}
 
-	public static void startChatSessioin(User completeUser, Scanner sc, ObjectOutputStream out, ObjectInputStream in) {
+	public static void startChatSession(User completeUser,String recipient, Scanner sc, ObjectOutputStream out, ObjectInputStream in,
+			Socket socket)throws IOException, ClassNotFoundException {
+		
+		Message sendMessageRequest = new Message("sendMessageRequest", Status.request);
+		out.writeObject(sendMessageRequest);
+		out.flush();
+
+		System.out.println("Enter message: ");
+		String msg = sc.nextLine();
+		// send message to server
+		List<String> recipients = new ArrayList<>();
+		recipients.add(recipient);
+		Message message = new Message(completeUser, recipients, msg, Status.request);
+		out.writeObject(message);
+		out.flush();
 
 	}
 
@@ -253,11 +243,11 @@ public class Client {
 		out.writeObject(message);
 		out.flush();
 		// server sends message confirmation
-		Message serverMessage = (Message) in.readObject();
-		// GUI pop-up
-		if (serverMessage.getStatus().equals(Status.fail)) {
-			System.out.println(serverMessage.getContent());
-		}
+//		Message serverMessage = (Message) in.readObject();
+//		// GUI pop-up
+//		if (serverMessage.getStatus().equals(Status.fail)) {
+//			System.out.println(serverMessage.getContent());
+//		}
 
 		System.out.println("Enter 1 to return to main menu: ");
 
@@ -280,10 +270,12 @@ public class Client {
 		Message viewConversationsRequest = new Message(user, "viewConversationsRequest", Status.request);
 		out.writeObject(viewConversationsRequest);
 		out.flush();
+		 //server sends message confirmation
+//		Message serverMessage = (Message) in.readObject();
 
 		// take in all conversations
-		// @SuppressWarnings("unchecked")
-		List<Conversation> conversations = (List<Conversation>) in.readObject();
+		//@SuppressWarnings("unchecked")
+		ConversationList conversations = (ConversationList) in.readObject();
 
 		System.out.println("Chats: ");
 		for (int i = 0; i < conversations.size(); i++) {
@@ -313,7 +305,7 @@ public class Client {
 			}
 		}
 
-		// server sends message confirmation
+//		 server sends message confirmation
 //		Message serverMessage = (Message) in.readObject();
 //		if(serverMessage.getStatus().equals(Status.fail)) {
 //			System.out.println(serverMessage.getContent());
@@ -395,23 +387,47 @@ public class Client {
 		out.writeObject(message);
 		out.flush();
 
-		Message serverMessage = (Message) in.readObject();
-		// GUI pop-up
-		if (serverMessage.getStatus().equals(Status.fail)) {
-			System.out.println(serverMessage.getContent());
+//		Message serverMessage = (Message) in.readObject();
+//		// GUI pop-up
+//		if (serverMessage.getStatus().equals(Status.fail)) {
+//			System.out.println(serverMessage.getContent());
+//		}
+
+	}
+	
+	private static class MessageListener implements Runnable {
+		private final Socket socket;
+		private User user;
+		private ObjectOutputStream out;
+		private ObjectInputStream in;
+
+		public MessageListener(Socket socket, User user, ObjectOutputStream out, ObjectInputStream in) {
+			this.socket = socket;
+			this.user = user;
+			this.out = out;
+			this.in = in;
+		}
+
+		@Override
+		public void run() {
+//			try {
+//				Object obj = in.readObject();
+//				if (obj instanceof Message) {
+//					Message receivedMessage = (Message) obj;
+//					if(receivedMessage.getStatus().equals(Status.delievered)) {
+//					System.out.println("\n[Message from " + receivedMessage.getSender().getFullName() + "]: "
+//							+ receivedMessage.getContent());
+//				}
+//					else {
+//						return;
+//					}
+//				}
+//			} catch (Exception e) {
+//				// TODO: handle exception
+//			}
+
 		}
 
 	}
 
-	// get user unique ID?
-//	private static int getID(String name) {
-//			  int id = 0;
-//			  for(int i=0;i< name.length(); i++){
-//			  	char character = name.charAt(i);
-//			    int ascii = (int) character;
-//			  	id += ascii;
-//			 	 }
-//			  return id;
-//	}
-//	
 }

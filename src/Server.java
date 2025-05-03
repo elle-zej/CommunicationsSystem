@@ -22,7 +22,7 @@ public class Server {
 		ServerSocket server = null;
 		try {
 			InetAddress localhost = InetAddress.getLocalHost();
-			String IP = localhost.getHostAddress().trim();
+			String IP = localhost.getHostAddress();
 			System.out.println(IP);
 			server = new ServerSocket(1200);
 			server.setReuseAddress(true);
@@ -113,7 +113,7 @@ public class Server {
 							// since user successfully logged in,
 							// add them(username/objectoutputStream) as they are a valid/authenticated
 							// member
-							streamsInfo.put(user.getFullName(), out);
+							streamsInfo.put(user.getFullName().toUpperCase(), out);
 							// delete this
 							System.out.println("Online on the server: " + streamsInfo.keySet());
 
@@ -148,7 +148,7 @@ public class Server {
 						break;
 					case "logOutRequest":
 						logOutRequest(user, out, in);
-						break;
+						return;
 					default:
 						break;
 					}
@@ -223,11 +223,15 @@ public class Server {
 					// get the output stream of the receiver to send message
 					ObjectOutputStream out = streamsInfo.get(reciever.toUpperCase());
 					try {
+						sentMessage.setStatus(Status.delievered);
 						out.writeObject(sentMessage);
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
+				}
+				else {
+					return;
 				}
 			});
 			// returns control to where sendChat() was called
@@ -413,8 +417,8 @@ public class Server {
 					writer.close();
 					lineScanner.close();
 					// send confirmation that message sent
-					Message messageSent = new Message("Message sent", Status.success);
-					out.writeObject(messageSent);
+//					Message messageSent = new Message("Message sent", Status.success);
+//					out.writeObject(messageSent);
 
 					return;
 				}
@@ -437,8 +441,8 @@ public class Server {
 			writer.close();
 			lineScanner.close();
 
-			Message messageSent = new Message("Message sent", Status.success);
-			out.writeObject(messageSent);
+//			Message messageSent = new Message("Message sent", Status.success);
+//			out.writeObject(messageSent);
 
 		}
 
@@ -458,8 +462,9 @@ public class Server {
 				String line = lineScanner.nextLine();
 				fileLines.add(line);
 			}
-
-			List<Conversation> allConversations = new ArrayList<>();
+			
+			ConversationList allConversations = new ConversationList();
+			//List<Conversation> allConversations = new ArrayList<>();
 			List<String> membersList = new ArrayList<>();
 			int ID = 0;
 			// go through each of the lines
@@ -493,17 +498,19 @@ public class Server {
 					}
 					i--;
 					Conversation conversation = new Conversation(ID, new ArrayList<>(membersList), messages);
-					allConversations.add(conversation);
+					allConversations.addConversation(conversation);
 				}
 			}
 			// check which conversations contain user
-			List<Conversation> conversationsWithUser = new ArrayList<>();
+			ConversationList conversationsWithUser = new ConversationList();
+			//List<Conversation> conversationsWithUser = new ArrayList<>();
 			for (int i = 0; i < allConversations.size(); i++) {
 				if (allConversations.get(i).getMembersList().contains(name)) {
-					conversationsWithUser.add(allConversations.get(i));
+					conversationsWithUser.addConversation(allConversations.get(i));
 				}
 			}
 			out.writeObject(conversationsWithUser);
+			out.flush();
 		}
 
 		private static void viewAllConversationsHandler(User user, ObjectOutputStream out, ObjectInputStream in)

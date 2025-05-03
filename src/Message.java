@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 public class Message implements Serializable {
+	private static final long serialVersionUID = -5531887591421027149L;
 	private final User sender;
 	private final List<String> receiver;
 	private final String content;
@@ -31,6 +32,10 @@ public class Message implements Serializable {
 		this.receiver = new ArrayList<>();
 		this.content = content;
 		this.timestamp = "";
+		this.status = status;
+	}
+	
+	public void setStatus(Status status) {
 		this.status = status;
 	}
 	
