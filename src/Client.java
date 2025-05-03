@@ -30,7 +30,7 @@ public class Client {
 		//"134.154.23.147"
 
 		while (true) {
-			Socket socket = new Socket(IP, 1200);
+			Socket socket = new Socket("192.168.12.116", 1200);
 			// get object input and also output objects
 			ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
 			ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
@@ -38,7 +38,6 @@ public class Client {
 			// login
 			Client client = new Client(null);
 			client.login(out, in);
-			
 
 			User completeUser = (User) in.readObject();
 			// get user's role
@@ -107,16 +106,9 @@ public class Client {
 					}
 				}
 			}
-			System.out.println("SuccessFull logout");
-			System.out.println("Do you want to login in ? (Y/N): ");
-			String choice = sc.nextLine();
-			if(choice.toLowerCase().equals("n")) {
-				System.out.println("Terminating the application");
-				break;
-			}
-			else {
-				System.out.println("Welcome to the login page again!! \n");
-			}
+			System.out.println("Successful logout");
+			System.out.println("Terminating the application");
+			break;
 		}
 
 	}
@@ -411,6 +403,7 @@ public class Client {
 		@Override
 		public void run() {
 //			try {
+//				while(true) {
 //				Object obj = in.readObject();
 //				if (obj instanceof Message) {
 //					Message receivedMessage = (Message) obj;
@@ -421,6 +414,7 @@ public class Client {
 //					else {
 //						return;
 //					}
+//				}
 //				}
 //			} catch (Exception e) {
 //				// TODO: handle exception
