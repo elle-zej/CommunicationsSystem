@@ -1,4 +1,5 @@
 import java.io.*;
+import java.lang.classfile.constantpool.MemberRefEntry;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -12,7 +13,7 @@ public class Client {
 	// defining attributes
 	private User user;
 	private GUI UI;
-
+    private Socket socket = null;
 	Client(User user) {
 		this.user = user;
 	}
@@ -35,20 +36,40 @@ public class Client {
 
 		@Override
 		public void run() {
+			
 			try {
 				boolean done = false;
 				while (!done) {
 					Message receivedMessage = (Message) in.readObject();
 					System.out.println("\n[Message from " + receivedMessage.getSender().getFullName() + "]: "
 							+ receivedMessage.getContent());
-
+				
 				}
+				
 			} catch (Exception e) {
 				// TODO: handle exception
 			}
 
 		}
 
+	}
+	
+	public void listenForMessage(User user, ObjectOutputStream out, ObjectInputStream in) {
+		new Thread(new Runnable() {
+			Message receivedMessage;
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				while(socket.isConnected()) {
+					try {
+						receivedMessage = (Message) in.readObject();
+						System.out.println("Message from " + receivedMessage.getSender().getFullName());
+					}catch (Exception e) {
+						// TODO: handle exception
+					}
+				}
+			}
+		}).start();
 	}
 	//----------------------------------Driver----------------------------------------//
 	public static void main(String[] args) throws IOException, ClassNotFoundException {
@@ -95,15 +116,24 @@ public class Client {
 
 		while (true) {
 			Socket socket = new Socket(IP, 1200);
+			this.socket = socket;
 			// get object input and also output objects
 			ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
 			ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
 			User user = null;
 
-			// login
+			// login and after successful login server sends you a user object with complete info
 			login(out, in);
-
 			User completeUser = (User) in.readObject();
+			
+			
+			//System.out.println("Listening");
+		
+			//listenForMessage(user, out, in);
+			
+			//System.out.println("Went past listening");
+			
+			
 			userSession(completeUser, sc, out, in);
 
 			System.out.println("SuccessFull logout");
@@ -219,7 +249,9 @@ public class Client {
 				String recipient = onlineUsers.get(choice - 1).getFullName();
 
 				System.out.println("Starting a chat with " + recipient + ": ");
-
+				
+				//load the previous converstaions
+				onViewSpecificConversation(completeUser, recipient, sc, out, in);
 			}
 		} catch (IOException | ClassNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -285,7 +317,83 @@ public class Client {
 			}
 		}
 	}
+	
+	private static void onViewSpecificConversation(User user, String recepient, Scanner sc, ObjectOutputStream out, ObjectInputStream in)
+			throws IOException, ClassNotFoundException {
+		// Send request to viewConversations
+		Message viewConversationsRequest = new Message(user, "viewConversationsRequest", Status.request);
+		out.writeObject(viewConversationsRequest);
+		out.flush();
 
+		// take in all conversations
+		// @SuppressWarnings("unchecked")
+		List<Conversation> conversations = (List<Conversation>) in.readObject();
+		int conversationChoice = -1;
+		
+		System.out.println("Chats: ");
+		//get users each convo
+		for (int i = 0; i < conversations.size(); i++) {
+			//iterate over each convo of each members
+			List<String> members = conversations.get(i).getRecipients(user);
+			String messageReceivedByString = members.get(0).toUpperCase();
+			
+			if(members.size() == 1 && (messageReceivedByString.equals(recepient.toUpperCase()))) {
+				System.out.println(conversations.get(i).getMessagesString());
+			}
+		}
+
+		
+		sc.nextLine();
+		// print all elements of the conversation
+		System.out.println("\nConversation " + conversations.get(conversationChoice).getConversationIDString());
+		System.out.println(conversations.get(conversationChoice).getMessagesString());
+		System.out.println("Enter: \n" + "1 to send message \n" + "2 return to main menu");
+		// check user input
+		int choice;
+		while (true) {
+			if (sc.hasNextInt()) {
+				choice = sc.nextInt();
+				// consume next line character
+				sc.nextLine();
+				if (choice == 1 || choice == 2) {
+					break;
+				} else {
+					System.out.println("Error: Enter a number 1 or 2: ");
+				}
+			} else {
+				System.out.println("Error: Enter a number 1 or 2: ");
+			}
+		}
+
+		// server sends message confirmation
+//		Message serverMessage = (Message) in.readObject();
+//		if(serverMessage.getStatus().equals(Status.fail)) {
+//			System.out.println(serverMessage.getContent());
+//		}
+
+		while (true) {
+			if (choice == 1) {
+				System.out.println("Enter message: ");
+				String msg = sc.nextLine().trim();
+				List<String> receivers = conversations.get(conversationChoice).getRecipients(user);
+				for (int i = 0; i < receivers.size(); i++) {
+					System.out.println(receivers.get(i));
+				}
+				Message message = new Message(user, receivers, msg, Status.request);
+				sendMessage(message, out, in);
+				return;
+			} else if (choice == 2) {
+				return;
+			} else {
+				System.out.println("Enter 1 or 2");
+				choice = sc.nextInt();
+				// consume next line character
+				sc.nextLine();
+			}
+		}
+
+	}
+	
 	private static void onViewConversations(User user, Scanner sc, ObjectOutputStream out, ObjectInputStream in)
 			throws IOException, ClassNotFoundException {
 		// Send request to viewConversations

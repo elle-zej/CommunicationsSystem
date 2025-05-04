@@ -10,6 +10,9 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
+import javax.swing.plaf.metal.MetalMenuBarUI;
+
 import java.net.InetAddress;
 
 public class Server {
@@ -510,7 +513,74 @@ public class Server {
 			}
 			out.writeObject(conversationsWithUser);
 		}
+		private static void viewSpecificConversation(User user, String user2Name, ObjectOutputStream out) throws FileNotFoundException {
+			//get the all of users conversations
+			List<Conversation> userConversations = getUserConversations(user);
+			for(Conversation conversation: userConversations) {
+				List<String> convoMembers = conversation.getMembersList();
+				//since only one member should be on a one on one chat
+				String member = convoMembers.get(0).toUpperCase();
+				if(member.equals(user2Name.toUpperCase())) {
+					System.out.println(conversation.getMessagesString());
+					 break;
+				}
+			}
+		}
+		private static List<Conversation> getUserConversations(User user) throws FileNotFoundException{
+			String name = user.getFullName().toUpperCase();
 
+			// open conversation history file
+			File conversationHistoryFile = new File(conversationHistory);
+			Scanner lineScanner = new Scanner(conversationHistoryFile);
+
+			// process lines of file
+			List<String> fileLines = new ArrayList<>();
+
+			while (lineScanner.hasNextLine()) {
+				// get all lines in the file
+				String line = lineScanner.nextLine();
+				fileLines.add(line);
+			}
+
+			List<Conversation> allConversations = new ArrayList<>();
+			List<String> membersList = new ArrayList<>();
+			int ID = 0;
+			// go through each of the lines
+			for (int i = 0; i < fileLines.size(); i++) {
+				String line = fileLines.get(i);
+				// extract all conversations from file
+				if (line.startsWith("Conversation ")) {
+					String conversationLine = line;
+					// take conversation and store in array
+					String conversationID = conversationLine.split(" ")[1];
+					// take each conversation and its ID
+					ID = Integer.parseInt(conversationID);
+					membersList = new ArrayList<>();
+				} else if (line.startsWith("Members")) {
+					String membersLine = line;
+					// take all members and store in array
+					String[] members = membersLine.split(": ")[1].trim().split(",");
+					// sort the array in alphabetical order
+					Arrays.sort(members);
+					// turn array into list (for comparison of membersOfMessage sent by client)
+					membersList = Arrays.asList(members);
+				} else if (line.startsWith("Chat:")) {
+					i++;
+					List<String> messages = new ArrayList<>();
+					while (i < fileLines.size() && !fileLines.get(i).startsWith("Conversation")) {
+						line = fileLines.get(i).trim();
+						if (!line.equals("")) {
+							messages.add(line);
+						}
+						i++;
+					}
+					i--;
+					Conversation conversation = new Conversation(ID, new ArrayList<>(membersList), messages);
+					allConversations.add(conversation);
+				}
+			}
+			return allConversations;
+		}
 		private static void viewAllConversationsHandler(User user, ObjectOutputStream out, ObjectInputStream in)
 				throws IOException, ClassNotFoundException {
 			String name = user.getFullName().toUpperCase();
