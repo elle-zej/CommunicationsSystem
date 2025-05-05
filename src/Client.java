@@ -6,31 +6,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-import javax.security.auth.login.LoginContext;
-import javax.swing.plaf.synth.SynthOptionPaneUI;
 
 public class Client {
 	// defining attributes
 	private User user;
-	private GUI UI;
+	//private GUI UI;
     private Socket socket = null;
-  
-	Client(User user) {
-		this.user = user;
-	}
-
-	public User getUser() {
-		return this.user;
-	}
 
 	//----------------------------------Driver----------------------------------------//
 	public static void main(String[] args) throws IOException, ClassNotFoundException {
 
-		Client client = new Client(null);
+		Client client = new Client();
 		client.runClientLoop();
 
 	}
-	//----------------------------------------------------------------------------------
+
 	public void runClientLoop() throws IOException, ClassNotFoundException {
 
 		Scanner sc = new Scanner(System.in);
@@ -43,21 +33,14 @@ public class Client {
 			// get object input and also output objects
 			ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
 			ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-			User user = null;
+			
 			// login and after successful login server sends you a user object with complete info
 			login(out, in);
 			User completeUser = (User) in.readObject();
-			//System.out.println("Listening");
-		
-			//listenForMessage(user, out, in);
-			
-			//System.out.println("Went past listening");
-			
-			
+			//open menu after successful login
 			userSession(completeUser, sc, out, in);
-
 			System.out.println("Successful logout");
-		}
+			return;
 	}
 
 	// user is provided with options
@@ -87,11 +70,14 @@ public class Client {
 					onViewConversations(completeUser, sc, out, in);
 					break;
 				case 3:
-					onViewOnline(completeUser, sc, out, in, socket);
+					onViewOnline(completeUser, sc, out, in);
 					break;
 				case 4:
 					onLogOut(completeUser, sc, out, in);
 					loggedIn = false;
+					return;
+				default:
+					System.out.println("Enter a choice 1-4");
 					break;
 				}
 
@@ -101,6 +87,7 @@ public class Client {
 
 				System.out.println("Enter choice:" + "\n1. Send Message" + "\n2. View Conversations"
 						+ "\n3. View ALL Conversations" + "\n4. View Online" + "\n5. Log Out");
+				
 				int choice = sc.nextInt();
 				// consume \n
 				sc.nextLine();
@@ -116,13 +103,16 @@ public class Client {
 					onViewAllConversations(completeUser, sc, out, in);
 					break;
 				case 4:
-					onViewOnline(completeUser, sc, out, in, socket);
+					onViewOnline(completeUser, sc, out, in);
 					break;
 				case 5:
 					onLogOut(completeUser, sc, out, in);
+					System.out.println("Successful logout");
 					loggedIn = false;
+					return;
+				default:
+					System.out.println("Enter a choice 1-5");
 					break;
-
 				}
 			}
 		}
@@ -132,31 +122,31 @@ public class Client {
 		Scanner sc = new Scanner(System.in);
 		boolean loggingIn = true;
 		while (loggingIn) {
+			//prompt for user name and password
 			System.out.println("Enter username: ");
 			String username = sc.nextLine().trim();
 			System.out.println("Enter password: ");
 			String password = sc.nextLine().trim();
+			//create a user with entered user name and password
 			user = new User(username, password);
 			try {
 				out.writeObject(user);
 				// read in if success message or not
 				Message serverMessage = (Message) in.readObject();
-				System.out.println(serverMessage.getContent());
+				System.out.println(serverMessage.getContent() + "\n");
 				if (serverMessage.getStatus().equals(Status.success)) {
 					loggingIn = false;
 				}
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (ClassNotFoundException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 
 		}
 	}
 
-	public static void onViewOnline(User completeUser, Scanner sc, ObjectOutputStream out, ObjectInputStream in, Socket socket) {
+	public static void onViewOnline(User completeUser, Scanner sc, ObjectOutputStream out, ObjectInputStream in) {
 		List<User> onlineUsers = new ArrayList<User>();
 
 		// request the server to view online people
@@ -170,7 +160,7 @@ public class Client {
 			if (onlineUsers.isEmpty()) {
 				System.out.println("No Users Online, You are the only one!");
 			} else {
-				System.out.println("Choose the online user to chat with: ");
+				System.out.println("Users online: ");
 				int i = 1;
 				for (User onlineUser : onlineUsers) {
 					System.out.println(i + ") " + onlineUser.getFullName());
@@ -178,30 +168,29 @@ public class Client {
 				}
 
 				// (i - 1) done because incremented one more time before out of for loop
-				System.out.print("Choose who to chat with ( 1 - " + (i - 1) + " ) : ");
+				System.out.print("Choose who to chat with ( 1 - " + (i - 1) + " ) or -1 to exit \n");
 				int choice = sc.nextInt();
 
-				// consume the space after the int
+				// consume the space after the integer
 				sc.nextLine();
-
-				System.out.println();
-
+				
+				if(choice == -1) {return;}
+				
 				String recipient = onlineUsers.get(choice - 1).getFullName();
-
 				System.out.println("Starting a chat with " + recipient + ": ");
-				//load the previous converstaions
+				//load the previous conversations
 				onViewSpecificConversation(completeUser, recipient, sc, out, in);
-				startChatSession(completeUser, recipient, sc, out, in, socket);
+				//start chat
+				startChatSession(completeUser, recipient, sc, out, in);
 			}
 		} catch (IOException | ClassNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
 	}
 
-	public static void startChatSession(User completeUser,String recipient, Scanner sc, ObjectOutputStream out, ObjectInputStream in,
-			Socket socket)throws IOException, ClassNotFoundException {
+	public static void startChatSession(User completeUser,String recipient, Scanner sc, ObjectOutputStream out, ObjectInputStream in)
+			throws IOException, ClassNotFoundException {
 		
 		Message sendMessageRequest = new Message("sendMessageRequest", Status.request);
 		out.writeObject(sendMessageRequest);
@@ -233,6 +222,7 @@ public class Client {
 		Message sendMessageRequest = new Message(user, "sendMessageRequest", Status.request);
 		out.writeObject(sendMessageRequest);
 		out.flush();
+		
 		System.out.println("Enter recipients separated by commas: ");
 		// ASCII?
 		String input = sc.nextLine();
@@ -246,29 +236,33 @@ public class Client {
 
 		System.out.println("Enter message: ");
 		String msg = sc.nextLine();
-		// send message to server
-		Message message = new Message(user, members, msg, Status.request);
-		out.writeObject(message);
-		out.flush();
-		// server sends message confirmation
-//		Message serverMessage = (Message) in.readObject();
-//		// GUI pop-up
-//		if (serverMessage.getStatus().equals(Status.fail)) {
-//			System.out.println(serverMessage.getContent());
-//		}
-
-		System.out.println("Enter 1 to return to main menu: ");
-
+		//confirm to send message
+		System.out.println("Recipient(s): " + members);
+		System.out.println("Message: " + msg);
+		System.out.println("Enter 1 to send or -1 to exit");
+		
 		int choice = sc.nextInt();
 		sc.nextLine();
+		
 		while (true) {
 			if (choice == 1) {
+				Message message = new Message(user, members, msg, Status.request);
+				out.writeObject(message);
+				out.flush();
+				System.out.println("Message sent \n");
 				return;
-			} else {
-				System.out.println("Enter 1 to exit");
+			} else if (choice == -1) {
+				Message message = new Message(user, members, "MessageAbandoned", Status.fail);
+				out.writeObject(message);
+				out.flush();
+				return;
+			}
+			else {
+				System.out.println("Enter 1 to send or -1 to exit");
 				choice = sc.nextInt();
 				sc.nextLine();
 			}
+		
 		}
 	}
 	
@@ -280,11 +274,10 @@ public class Client {
 		out.flush();
 
 		// take in all conversations
-		// @SuppressWarnings("unchecked")
-		List<Conversation> conversations = (List<Conversation>) in.readObject();
+		ConversationList conversations = (ConversationList) in.readObject();
 		int conversationChoice = -1;
 		
-		System.out.println("Chats: ");
+		System.out.println("Messages ");
 		//get users each convo
 		for (int i = 0; i < conversations.size(); i++) {
 			//iterate over each convo of each members
@@ -301,7 +294,7 @@ public class Client {
 		// print all elements of the conversation
 		System.out.println("\nConversation " + conversations.get(conversationChoice).getConversationIDString());
 		System.out.println(conversations.get(conversationChoice).getMessagesString());
-		System.out.println("Enter: \n" + "1 to send message \n" + "2 return to main menu");
+		System.out.println("Enter: \n" + "1 to send message \n" + "-1 return to main menu");
 		// check user input
 		int choice;
 		while (true) {
@@ -312,10 +305,10 @@ public class Client {
 				if (choice == 1 || choice == 2) {
 					break;
 				} else {
-					System.out.println("Error: Enter a number 1 or 2: ");
+					System.out.println("Error: Enter a number 1 or -1: ");
 				}
 			} else {
-				System.out.println("Error: Enter a number 1 or 2: ");
+				System.out.println("Error: Enter a number 1 or -1: ");
 			}
 		}
 
@@ -365,13 +358,16 @@ public class Client {
 		for (int i = 0; i < conversations.size(); i++) {
 			System.out.println(i + " " + conversations.get(i).getRecipientsString(user));
 		}
+		System.out.println("Enter number to view chat or -1 to exit:");
 
 		int conversationChoice = sc.nextInt();
 		sc.nextLine();
+		
+		if (conversationChoice == -1) {return;}
 		// print all elements of the conversation
 		System.out.println("\nConversation " + conversations.get(conversationChoice).getConversationIDString());
 		System.out.println(conversations.get(conversationChoice).getMessagesString());
-		System.out.println("Enter: \n" + "1 to send message \n" + "2 return to main menu");
+		System.out.println("Enter: \n" + "1 to send message \n" + "-1 return to main menu");
 		// check user input
 		int choice;
 		while (true) {
@@ -379,13 +375,13 @@ public class Client {
 				choice = sc.nextInt();
 				// consume next line character
 				sc.nextLine();
-				if (choice == 1 || choice == 2) {
+				if (choice == 1 || choice == -1) {
 					break;
 				} else {
-					System.out.println("Error: Enter a number 1 or 2: ");
+					System.out.println("Error: Enter a number 1 or -1: ");
 				}
 			} else {
-				System.out.println("Error: Enter a number 1 or 2: ");
+				System.out.println("Error: Enter a number 1 or -1: ");
 			}
 		}
 
@@ -406,10 +402,10 @@ public class Client {
 				Message message = new Message(user, receivers, msg, Status.request);
 				sendMessage(message, out, in);
 				return;
-			} else if (choice == 2) {
+			} else if (choice == -1) {
 				return;
 			} else {
-				System.out.println("Enter 1 or 2");
+				System.out.println("Enter 1 or -1");
 				choice = sc.nextInt();
 				// consume next line character
 				sc.nextLine();
@@ -430,31 +426,40 @@ public class Client {
 //			System.out.println(serverMessage.getContent());
 //		}
 
-		@SuppressWarnings("unchecked")
-		List<Conversation> conversations = (List<Conversation>) in.readObject();
+
+		ConversationList conversations = (ConversationList) in.readObject();
 
 		System.out.println("Chats: ");
 		for (int i = 0; i < conversations.size(); i++) {
 			System.out.println(i + " " + conversations.get(i).getMembersString());
 		}
+		
+		System.out.println("Enter number to view chat or -1 to exit:");
+
 
 		int conversationChoice = sc.nextInt();
 		sc.nextLine();
-
+		
+		if (conversationChoice == -1) {return;}
+		
 		System.out.println("Conversation " + conversations.get(conversationChoice).getConversationIDString() + "\n");
 		System.out.println(conversations.get(conversationChoice).getMessagesString());
 
-		System.out.println("Enter 1 to return to main menu: ");
-
-		int choice = sc.nextInt();
-		sc.nextLine();
+		System.out.println("Enter: \n" + "1 to send message \n" + "-1 return to main menu");
+		// check user input
+		int choice;
 		while (true) {
-			if (choice == 1) {
-				return;
-			} else {
-				System.out.println("Enter 1 to exit");
+			if (sc.hasNextInt()) {
 				choice = sc.nextInt();
+				// consume next line character
 				sc.nextLine();
+				if (choice == 1 || choice == -1) {
+					break;
+				} else {
+					System.out.println("Error: Enter a number 1 or -1: ");
+				}
+			} else {
+				System.out.println("Error: Enter a number 1 or -1: ");
 			}
 		}
 
@@ -476,24 +481,23 @@ public class Client {
 //		if (serverMessage.getStatus().equals(Status.fail)) {
 //			System.out.println(serverMessage.getContent());
 //		}
-
 	}
 	
-	private static class MessageListener implements Runnable {
-		private final Socket socket;
-		private User user;
-		private ObjectOutputStream out;
-		private ObjectInputStream in;
-
-		public MessageListener(Socket socket, User user, ObjectOutputStream out, ObjectInputStream in) {
-			this.socket = socket;
-			this.user = user;
-			this.out = out;
-			this.in = in;
-		}
-
-		@Override
-		public void run() {
+//	private static class MessageListener implements Runnable {
+//		private final Socket socket;
+//		private User user;
+//		private ObjectOutputStream out;
+//		private ObjectInputStream in;
+//
+//		public MessageListener(Socket socket, User user, ObjectOutputStream out, ObjectInputStream in) {
+//			this.socket = socket;
+//			this.user = user;
+//			this.out = out;
+//			this.in = in;
+//		}
+//
+//		@Override
+//		public void run() {
 //			try {
 //				while(true) {
 //				Object obj = in.readObject();
@@ -509,11 +513,11 @@ public class Client {
 //				}
 //				}
 //			} catch (Exception e) {
-//				// TODO: handle exception
+//				e.printStackTrace();
 //			}
-
-		}
-
-	}
+//
+//		}
+//
+//	}
 
 }

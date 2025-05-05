@@ -1,4 +1,8 @@
 Sus1,pas1,Sushant,EMPLOYEE,EMP1
 Tim2,paop,Tim,EMPLOYEE,EMP2
 Jeze3,house,Jezelle,EMPLOYEE,EMP3
+Pol45,123,Polly,IT,EMP4
+Bil5,321,Billy,EMPLOYEE,EMP6
+Ric4,PPP56,Rick,EMPLOYEE,EMP7
+m432,MaxisAwesome,Max,EMPLOYEE,EMP8
 Mark0,passw,Mark,IT,IT00
