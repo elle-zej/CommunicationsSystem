@@ -15,14 +15,11 @@ public class Client {
 
 	//----------------------------------Driver----------------------------------------//
 	public static void main(String[] args) throws IOException, ClassNotFoundException {
-
 		Client client = new Client();
 		client.runClientLoop();
-
 	}
 
 	public void runClientLoop() throws IOException, ClassNotFoundException {
-
 		Scanner sc = new Scanner(System.in);
 		InetAddress localhost = InetAddress.getLocalHost();
 		String IP = localhost.getHostAddress().trim();
@@ -42,7 +39,6 @@ public class Client {
 			System.out.println("Successful logout");
 			return;
 		}
-		
 	}
 
 	// user is provided with options
