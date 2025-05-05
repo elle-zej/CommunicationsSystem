@@ -41,8 +41,6 @@ public class Client {
 			userSession(completeUser, sc, out, in);
 			System.out.println("Successful logout");
 			return;
-		}
-		
 	}
 
 	// user is provided with options
