@@ -56,15 +56,7 @@ public class Client {
 			
 			userSession(completeUser, sc, out, in);
 
-			System.out.println("SuccessFull logout");
-			System.out.println("Do you want to login in ? (Y/N): ");
-			String choice = sc.nextLine();
-			if (choice.toLowerCase().equals("n")) {
-				System.out.println("Terminating the application");
-				break;
-			} else {
-				System.out.println("Welcome to the login page again!! \n");
-			}
+			System.out.println("Successful logout");
 		}
 	}
 
