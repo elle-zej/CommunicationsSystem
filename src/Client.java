@@ -13,7 +13,8 @@ public class Client {
 	// defining attributes
 	private User user;
 	private GUI UI;
-
+    private Socket socket = null;
+  
 	Client(User user) {
 		this.user = user;
 	}
@@ -22,95 +23,117 @@ public class Client {
 		return this.user;
 	}
 
+	//----------------------------------Driver----------------------------------------//
 	public static void main(String[] args) throws IOException, ClassNotFoundException {
+
+		Client client = new Client(null);
+		client.runClientLoop();
+
+	}
+	//----------------------------------------------------------------------------------
+	public void runClientLoop() throws IOException, ClassNotFoundException {
+
 		Scanner sc = new Scanner(System.in);
 		InetAddress localhost = InetAddress.getLocalHost();
 		String IP = localhost.getHostAddress().trim();
-		//String IP = "192.168.56.1";
-		//"134.154.23.147"
 
 		while (true) {
-			Socket socket = new Socket("192.168.12.116", 1200);
+			Socket socket = new Socket(IP, 1200);
+			this.socket = socket;
 			// get object input and also output objects
 			ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
 			ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
 			User user = null;
-			// login
-			Client client = new Client(null);
-			client.login(out, in);
-
+			// login and after successful login server sends you a user object with complete info
+			login(out, in);
 			User completeUser = (User) in.readObject();
-			// get user's role
-			Role role = completeUser.getRole();
-
-			boolean loggedIn = true;
+			//System.out.println("Listening");
+		
+			//listenForMessage(user, out, in);
 			
-			//MessageListener synchronousMessages = new MessageListener(socket, completeUser, out, in);
-			//new Thread(synchronousMessages).start();
+			//System.out.println("Went past listening");
 			
-			// logged in so now main menu of the program
-			while (loggedIn) {
-				// if role is Employee
-				if (role.equals(Role.Employee)) {
+			
+			userSession(completeUser, sc, out, in);
 
-					System.out.println("Enter choice:" + "\n1. Send Message" + "\n2. View Conversations"
-							+ "\n3. View Online" + "\n4. Log Out");
-					int choice = sc.nextInt();
-					// consume \n
-					sc.nextLine();
+			System.out.println("SuccessFull logout");
+			System.out.println("Do you want to login in ? (Y/N): ");
+			String choice = sc.nextLine();
+			if (choice.toLowerCase().equals("n")) {
+				System.out.println("Terminating the application");
+				break;
+			} else {
+				System.out.println("Welcome to the login page again!! \n");
+			}
+		}
+	}
 
-					switch (choice) {
-					case 1:
-						onSendMessage(completeUser, sc, out, in);
-						break;
-					case 2:
-						onViewConversations(completeUser, sc, out, in);
-						break;
-					case 3:
-						onViewOnline(completeUser, sc, out, in, socket);
-						break;
-					case 4:
-						onLogOut(completeUser, sc, out, in);
-						loggedIn = false;
-						break;
-					}
+	// user is provided with options
+	public void userSession(User completeUser, Scanner sc, ObjectOutputStream out, ObjectInputStream in)
+			throws ClassNotFoundException, IOException {
+		// get user's role
+		Role role = completeUser.getRole();
 
+		boolean loggedIn = true;
+
+		// logged in so now main menu of the program
+		while (loggedIn) {
+			// if role is Employee
+			if (role.equals(Role.Employee)) {
+
+				System.out.println("Enter choice:" + "\n1. Send Message" + "\n2. View Conversations"
+						+ "\n3. View Online" + "\n4. Log Out");
+				int choice = sc.nextInt();
+				// consume \n
+				sc.nextLine();
+
+				switch (choice) {
+				case 1:
+					onSendMessage(completeUser, sc, out, in);
+					break;
+				case 2:
+					onViewConversations(completeUser, sc, out, in);
+					break;
+				case 3:
+					onViewOnline(completeUser, sc, out, in, socket);
+					break;
+				case 4:
+					onLogOut(completeUser, sc, out, in);
+					loggedIn = false;
+					break;
 				}
-				// if role is ITUser
-				else {
 
-					System.out.println("Enter choice:" + "\n1. Send Message" + "\n2. View Conversations"
-							+ "\n3. View ALL Conversations" + "\n4. View Online" + "\n5. Log Out");
-					int choice = sc.nextInt();
-					// consume \n
-					sc.nextLine();
+			}
+			// if role is ITUser
+			else {
 
-					switch (choice) {
-					case 1:
-						onSendMessage(completeUser, sc, out, in);
-						break;
-					case 2:
-						onViewConversations(completeUser, sc, out, in);
-						break;
-					case 3:
-						onViewAllConversations(completeUser, sc, out, in);
-						break;
-					case 4:
-						onViewOnline(completeUser, sc, out, in, socket);
-						break;
-					case 5:
-						onLogOut(completeUser, sc, out, in);
-						loggedIn = false;
-						break;
+				System.out.println("Enter choice:" + "\n1. Send Message" + "\n2. View Conversations"
+						+ "\n3. View ALL Conversations" + "\n4. View Online" + "\n5. Log Out");
+				int choice = sc.nextInt();
+				// consume \n
+				sc.nextLine();
 
-					}
+				switch (choice) {
+				case 1:
+					onSendMessage(completeUser, sc, out, in);
+					break;
+				case 2:
+					onViewConversations(completeUser, sc, out, in);
+					break;
+				case 3:
+					onViewAllConversations(completeUser, sc, out, in);
+					break;
+				case 4:
+					onViewOnline(completeUser, sc, out, in, socket);
+					break;
+				case 5:
+					onLogOut(completeUser, sc, out, in);
+					loggedIn = false;
+					break;
+
 				}
 			}
-			System.out.println("Successful logout");
-			System.out.println("Terminating the application");
-			break;
 		}
-
 	}
 	
 	public void login(ObjectOutputStream out, ObjectInputStream in) {
@@ -174,8 +197,9 @@ public class Client {
 				String recipient = onlineUsers.get(choice - 1).getFullName();
 
 				System.out.println("Starting a chat with " + recipient + ": ");
+				//load the previous converstaions
+				onViewSpecificConversation(completeUser, recipient, sc, out, in);
 				startChatSession(completeUser, recipient, sc, out, in, socket);
-
 			}
 		} catch (IOException | ClassNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -255,7 +279,83 @@ public class Client {
 			}
 		}
 	}
+	
+	private static void onViewSpecificConversation(User user, String recepient, Scanner sc, ObjectOutputStream out, ObjectInputStream in)
+			throws IOException, ClassNotFoundException {
+		// Send request to viewConversations
+		Message viewConversationsRequest = new Message(user, "viewConversationsRequest", Status.request);
+		out.writeObject(viewConversationsRequest);
+		out.flush();
 
+		// take in all conversations
+		// @SuppressWarnings("unchecked")
+		List<Conversation> conversations = (List<Conversation>) in.readObject();
+		int conversationChoice = -1;
+		
+		System.out.println("Chats: ");
+		//get users each convo
+		for (int i = 0; i < conversations.size(); i++) {
+			//iterate over each convo of each members
+			List<String> members = conversations.get(i).getRecipients(user);
+			String messageReceivedByString = members.get(0).toUpperCase();
+			
+			if(members.size() == 1 && (messageReceivedByString.equals(recepient.toUpperCase()))) {
+				System.out.println(conversations.get(i).getMessagesString());
+			}
+		}
+
+		
+		sc.nextLine();
+		// print all elements of the conversation
+		System.out.println("\nConversation " + conversations.get(conversationChoice).getConversationIDString());
+		System.out.println(conversations.get(conversationChoice).getMessagesString());
+		System.out.println("Enter: \n" + "1 to send message \n" + "2 return to main menu");
+		// check user input
+		int choice;
+		while (true) {
+			if (sc.hasNextInt()) {
+				choice = sc.nextInt();
+				// consume next line character
+				sc.nextLine();
+				if (choice == 1 || choice == 2) {
+					break;
+				} else {
+					System.out.println("Error: Enter a number 1 or 2: ");
+				}
+			} else {
+				System.out.println("Error: Enter a number 1 or 2: ");
+			}
+		}
+
+		// server sends message confirmation
+//		Message serverMessage = (Message) in.readObject();
+//		if(serverMessage.getStatus().equals(Status.fail)) {
+//			System.out.println(serverMessage.getContent());
+//		}
+
+		while (true) {
+			if (choice == 1) {
+				System.out.println("Enter message: ");
+				String msg = sc.nextLine().trim();
+				List<String> receivers = conversations.get(conversationChoice).getRecipients(user);
+				for (int i = 0; i < receivers.size(); i++) {
+					System.out.println(receivers.get(i));
+				}
+				Message message = new Message(user, receivers, msg, Status.request);
+				sendMessage(message, out, in);
+				return;
+			} else if (choice == 2) {
+				return;
+			} else {
+				System.out.println("Enter 1 or 2");
+				choice = sc.nextInt();
+				// consume next line character
+				sc.nextLine();
+			}
+		}
+
+	}
+	
 	private static void onViewConversations(User user, Scanner sc, ObjectOutputStream out, ObjectInputStream in)
 			throws IOException, ClassNotFoundException {
 		// Send request to viewConversations
