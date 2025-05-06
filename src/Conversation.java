@@ -3,6 +3,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Conversation implements Serializable{
+	private static final long serialVersionUID = 8893641342213687609L;
 	private List<String> conversationHistory;
 	private List<Message> conversationHistoryMessages;
 	private List<User> members;
