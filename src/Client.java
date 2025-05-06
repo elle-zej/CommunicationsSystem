@@ -12,7 +12,7 @@ public class Client {
 	private User user;
 	//private GUI UI;
     private Socket socket = null;
-
+    
 	//----------------------------------Driver----------------------------------------//
 	public static void main(String[] args) throws IOException, ClassNotFoundException {
 		Client client = new Client();
@@ -25,7 +25,7 @@ public class Client {
 		String IP = localhost.getHostAddress().trim();
 
 		while (true) {
-			Socket socket = new Socket(IP, 1200);
+			Socket socket = new Socket("134.154.61.104",1200);
 			this.socket = socket;
 			// get object input and also output objects
 			ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
@@ -56,6 +56,7 @@ public class Client {
 			userSession(completeUser, sc, out, in);
 			GUI.responseMessage("logout successful");
 			sc.close();
+			//break;
 			return;
 		}
 	}
@@ -198,8 +199,10 @@ public class Client {
 				//load the previous conversations
 				onViewSpecificConversation(completeUser, recipient, sc, out, in);
 				//start chat
-				startChatSession(completeUser, recipient, sc, out, in);
+				//startChatSession(completeUser, recipient, sc, out, in);
+			
 			}
+			
 		} catch (IOException | ClassNotFoundException e) {
 			e.printStackTrace();
 		}
@@ -302,12 +305,12 @@ public class Client {
 			String messageReceivedByString = members.get(0).toUpperCase();
 			
 			if(members.size() == 1 && (messageReceivedByString.equals(recepient.toUpperCase()))) {
-				System.out.println(conversations.get(i).getMessagesString());
+				//System.out.println(conversations.get(i).getMessagesString());
+				conversationChoice = i;
 			}
 		}
 
 		
-		sc.nextLine();
 		// print all elements of the conversation
 		System.out.println("\nConversation " + conversations.get(conversationChoice).getConversationIDString());
 		System.out.println(conversations.get(conversationChoice).getMessagesString());
@@ -318,8 +321,9 @@ public class Client {
 			if (sc.hasNextInt()) {
 				choice = sc.nextInt();
 				// consume next line character
-				sc.nextLine();
-				if (choice == 1 || choice == 2) {
+				
+				//sc.nextLine();
+				if (choice == 1 || choice == -1) {
 					break;
 				} else {
 					System.out.println("Error: Enter a number 1 or -1: ");
@@ -346,10 +350,10 @@ public class Client {
 				Message message = new Message(user, receivers, msg, Status.request);
 				sendMessage(message, out, in);
 				return;
-			} else if (choice == 2) {
+			} else if (choice == -1) {
 				return;
 			} else {
-				System.out.println("Enter 1 or 2");
+				System.out.println("Enter 1 or -1");
 				choice = sc.nextInt();
 				// consume next line character
 				sc.nextLine();
@@ -499,42 +503,5 @@ public class Client {
 //			System.out.println(serverMessage.getContent());
 //		}
 	}
-	
-//	private static class MessageListener implements Runnable {
-//		private final Socket socket;
-//		private User user;
-//		private ObjectOutputStream out;
-//		private ObjectInputStream in;
-//
-//		public MessageListener(Socket socket, User user, ObjectOutputStream out, ObjectInputStream in) {
-//			this.socket = socket;
-//			this.user = user;
-//			this.out = out;
-//			this.in = in;
-//		}
-//
-//		@Override
-//		public void run() {
-//			try {
-//				while(true) {
-//				Object obj = in.readObject();
-//				if (obj instanceof Message) {
-//					Message receivedMessage = (Message) obj;
-//					if(receivedMessage.getStatus().equals(Status.delievered)) {
-//					System.out.println("\n[Message from " + receivedMessage.getSender().getFullName() + "]: "
-//							+ receivedMessage.getContent());
-//				}
-//					else {
-//						return;
-//					}
-//				}
-//				}
-//			} catch (Exception e) {
-//				e.printStackTrace();
-//			}
-//
-//		}
-//
-//	}
 
 }
