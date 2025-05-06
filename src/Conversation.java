@@ -85,6 +85,7 @@ public class Conversation implements Serializable{
 	public List<String> getMembersList(){
 		return membersString;
 	}
+	
 	public String getConversationIDString() {
 		return Integer.toString(this.conversationID);
 	}

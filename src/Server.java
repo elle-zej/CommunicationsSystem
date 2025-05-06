@@ -231,7 +231,7 @@ public class Server {
 					// get the output stream of the receiver to send message
 					ObjectOutputStream out = streamsInfo.get(reciever.toUpperCase());
 					try {
-						sentMessage.setStatus(Status.delievered);
+						sentMessage.setStatus(Status.delivered);
 						out.writeObject(sentMessage);
 					} catch (IOException e) {
 						// TODO Auto-generated catch block

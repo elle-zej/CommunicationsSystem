@@ -4,5 +4,5 @@ public enum Status {
 	request,
 	fail,
 	sent,
-	delievered
+	delivered
 }
