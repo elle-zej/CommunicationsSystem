@@ -32,11 +32,30 @@ public class Client {
 			ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
 			
 			// login and after successful login server sends you a user object with complete info
-			login(out, in);
+			Boolean loggingIn = true;
+			
+			while(loggingIn) {
+				GUI.loginWindow(out, in);
+				//login(out, in);
+				Message serverMessage = (Message) in.readObject();
+				
+				if (serverMessage.getStatus().equals(Status.success)) {
+					GUI.responseMessage(serverMessage.getContent());
+					loggingIn = false;
+				}
+				else {
+					GUI.responseMessage(serverMessage.getContent());
+				}
+				
+			}
+			
+			
 			User completeUser = (User) in.readObject();
+			
 			//open menu after successful login
 			userSession(completeUser, sc, out, in);
-			System.out.println("Successful logout");
+			GUI.responseMessage("logout successful");
+			sc.close();
 			return;
 		}
 	}

@@ -3,6 +3,9 @@ import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -10,19 +13,20 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
 public class GUI {
 	
-	public static void main(String[] args) {
-		loginWindow();
-		//loginWindow.setVisible(true);
-		//defaultWindow();
-	}
+//	public static void main(String[] args) {
+//		loginWindow();
+//		//loginWindow.setVisible(true);
+//		//defaultWindow();
+//	}
 
-	private static void loginWindow() {
+	public static void loginWindow(ObjectOutputStream out,ObjectInputStream in){
 	    // Create the frame
 		//main frame to hold the panel
 	    JFrame frame = new JFrame("Login");
@@ -76,11 +80,26 @@ public class GUI {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				
+				String username = idField.getText();
+				String password = new String(passField.getPassword());
+				
+				User user = new User(username, password);
+				try {
+					out.writeObject(user);
+					frame.dispose();
+					return;
+					
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				
 				//when logged in
 				//disposes login window
 				//directs to the homepage
 				frame.dispose();
-				homePage();
+				//homePage();
 				
 			}
 		});
@@ -88,6 +107,12 @@ public class GUI {
 	    frame.setVisible(true); // Make visible
 	    
 	    //return frame;
+	}
+	
+	public static void responseMessage(String msg) {
+		JFrame frameException2 = new JFrame();
+		JOptionPane.showMessageDialog(frameException2, msg);
+	    
 	}
 	
 	private static void homePage() {
