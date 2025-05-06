@@ -10,6 +10,9 @@ public class Message implements Serializable {
 	private final String timestamp;
 	private Status status;
 	
+	//just testing out something
+	private String liveMessageContent = ""; 
+	
 	Message(User sender, List<String> receiver, String content, Status status){
 		this.sender = sender;
 		this.receiver = receiver;
@@ -34,6 +37,18 @@ public class Message implements Serializable {
 		this.status = status;
 	}
 	
+	Message(User sender, String content, String liveMessageContent, List<String> receiver, Status status){
+		this.sender = sender;
+		this.receiver = receiver;
+		this.content = content;
+		this.liveMessageContent = liveMessageContent;
+		this.timestamp = "";
+		this.status = status;
+	}
+	
+	public String getLiveMessageContent() {
+		return this.liveMessageContent;
+	}
 	public String getTimestamp() {
 		return this.timestamp;
 	}

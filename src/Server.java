@@ -11,15 +11,20 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.sound.midi.Receiver;
 import javax.swing.plaf.metal.MetalMenuBarUI;
 
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 
 public class Server {
 	// will store the client name and their output stream so, messages can be
 	// redirected to through the correct stream
 	private static ConcurrentHashMap<String, ObjectOutputStream> streamsInfo = new ConcurrentHashMap<String, ObjectOutputStream>();
-
+	
+	//client who are online and available to chat
+	//private static ConcurrentHashMap<String, ObjectOutputStream> availableToChat = new ConcurrentHashMap<String, ObjectOutputStream>();
+	
 	public static void main(String[] args) throws IOException, ClassNotFoundException {
 
 		ServerSocket server = null;
@@ -29,7 +34,7 @@ public class Server {
 			System.out.println(IP);
 			server = new ServerSocket(1200);
 			server.setReuseAddress(true);
-
+			
 			while (true) {
 				Socket client = server.accept();
 
@@ -116,7 +121,7 @@ public class Server {
 							// since user successfully logged in,
 							// add them(username/objectoutputStream) as they are a valid/authenticated
 							// member
-							streamsInfo.put(user.getFullName(), out);
+							//streamsInfo.put(user.getFullName(), out);
 							// delete this
 							System.out.println("Online on the server: " + streamsInfo.keySet());
 
@@ -146,11 +151,21 @@ public class Server {
 					case "viewAllConversationsRequest":
 						viewAllConversationsHandler(user, out, in);
 						break;
-					case "viewOnlineRequest":
-						viewOnlineHandler(user, out, in);
+					case "GoOnlineRequest":
+						goOnlineHandler(user, out, in);
+						//viewOnlineHandler(user, out, in);
 						break;
 					case "logOutRequest":
 						logOutRequest(user, out, in);
+						break;
+					case "liveChat":
+						System.out.println("Live chat block");
+						List<String> members = request.getReceiver();
+						
+						System.out.println("Message being sent to " + members);
+						//create a valid message object to now pass
+						Message message = new Message(user, members, request.getLiveMessageContent(), Status.request);
+						synchronousChatHandler(user, message, out, in);
 						break;
 					default:
 						break;
@@ -181,7 +196,123 @@ public class Server {
 				}
 			}
 		}
+		
+		//method to store a message in the file
+		private static void storeMessage(User user, Message message) throws IOException {
+			Message sentMessage = message;
 
+			// process fields of sent message
+			User sender = sentMessage.getSender();
+			String nameOfSender = sender.getFullName();
+			String timestamp = sentMessage.getTimestamp();
+			String msg = sentMessage.getContent();
+
+			// create new message to add to conversation history
+			String newMsg = "[" + timestamp + "] " + nameOfSender + ": " + msg;
+
+			// turn sender and recipients into members
+			List<String> membersOfMessage = sentMessage.getMembers();
+			// sort in alphabetical order
+			membersOfMessage.sort(null);
+
+			// open conversation history file
+			File conversationHistoryFile = new File(conversationHistory);
+			Scanner lineScanner = new Scanner(conversationHistoryFile);
+
+			// process lines of file
+			List<String> fileLines = new ArrayList<>();
+			while (lineScanner.hasNextLine()) {
+				// get all lines in the file
+				String line = lineScanner.nextLine();
+				fileLines.add(line);
+			}
+
+			List<String> membersList = new ArrayList<>();
+			// go through each of the lines
+			for (int i = 0; i < fileLines.size(); i++) {
+				String line = fileLines.get(i);
+				// extract members from file
+				if (line.startsWith("Members: ")) {
+					String membersLine = line;
+					// take all members and store in array
+					String[] members = membersLine.split(":")[1].trim().split(",");
+					// sort the array in alphabetical order
+					Arrays.sort(members);
+					// turn array into list (for comparison of membersOfMessage sent by client)
+					membersList = Arrays.asList(members);
+				}
+
+				// if members in storage match members sent
+				if (membersOfMessage.equals(membersList)) {
+					// go through the lines until blank line is found
+					while (i < fileLines.size() && !fileLines.get(i).equals("")) {
+						i++;
+					}
+					// when you find blank line, you have found the end of the chat
+					if (i < fileLines.size()) {
+						// add the new message to that line
+						fileLines.add(i, newMsg);
+					} else {
+						fileLines.add(newMsg);
+					}
+					// write all the changes to the file
+					FileWriter writer = new FileWriter(conversationHistory);
+					for (int j = 0; j < fileLines.size(); j++) {
+						writer.write(fileLines.get(j) + "\n");
+					}
+
+					writer.close();
+					lineScanner.close();
+					return;
+				}
+			}
+
+			// if not found
+			Conversation conversation = new Conversation(membersOfMessage);
+			// conversation.addMessage(sentMessage);
+			// add to file lines
+			fileLines.add("\nConversation " + conversation.getConversationIDString());
+			fileLines.add("Members: " + String.join(",", membersOfMessage));
+			fileLines.add("Chat:");
+			fileLines.add(newMsg);
+
+			FileWriter writer = new FileWriter(conversationHistory, false);
+			for (int i = 0; i < fileLines.size(); i++) {
+				writer.write(fileLines.get(i) + "\n");
+			}
+
+			writer.close();
+			lineScanner.close();
+
+		}
+
+		//this method calls a method to write new message to the file
+		//calls method to redirect the message to the correct client
+		private static void synchronousChatHandler(User user, Message message, ObjectOutputStream out, ObjectInputStream in) throws IOException, ClassNotFoundException {
+			Message sentMessage = message;
+			System.out.println("Message being sent: " + message.getContent());
+			//store the message in the file
+			storeMessage(user, sentMessage);
+			sendChat(sentMessage);
+			
+			
+
+		}
+		private void goOnlineHandler(User user, ObjectOutputStream out, ObjectInputStream in) {
+			//only set as online when users manually go online
+			String nameString = user.getFullName().toUpperCase();
+			if(!streamsInfo.containsKey(nameString)) {
+				//OutputStream oStream = this.clientSocket.getOutputStream();
+				//ObjectOutputStream out = new ObjectOutputStream(oStream);
+				streamsInfo.put(nameString, out);
+				System.out.println("New online user added, " + nameString);
+				System.out.println(streamsInfo);
+			}
+		
+			//System.out.println("go Online handler");
+			viewOnlineHandler(user, out, in);
+		}
+		
 		private boolean authenticateUser(User user) {
 
 			try {
@@ -223,15 +354,18 @@ public class Server {
 			return false;
 		}
 
-		private void sendChat(Message sentMessage) throws IOException, ClassNotFoundException {
+		private static void sendChat(Message sentMessage) throws IOException, ClassNotFoundException {
 			List<String> receivers = sentMessage.getReceiver();
 			receivers.forEach((String reciever) -> {
 				// if the receiver is currently online, send the message through the stream
 				if (streamsInfo.containsKey(reciever.toUpperCase())) {
+					System.out.println(reciever + " is gonna get the message!!");
 					// get the output stream of the receiver to send message
 					ObjectOutputStream out = streamsInfo.get(reciever.toUpperCase());
 					try {
+						
 						out.writeObject(sentMessage);
+						System.out.println("message sent to the stream");
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
