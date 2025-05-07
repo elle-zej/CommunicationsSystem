@@ -17,6 +17,7 @@ public class Client {
 	public static void main(String[] args) throws IOException, ClassNotFoundException {
 		Client client = new Client();
 		client.runClientLoop();
+		
 	}
 
 	public void runClientLoop() throws IOException, ClassNotFoundException {
@@ -24,7 +25,6 @@ public class Client {
 		InetAddress localhost = InetAddress.getLocalHost();
 		String IP = localhost.getHostAddress().trim();
 
-		while (true) {
 			Socket socket = new Socket(IP, 1200);
 			this.socket = socket;
 			// get object input and also output objects
@@ -55,9 +55,7 @@ public class Client {
 			//open menu after successful login
 			userSession(completeUser, sc, out, in);
 			GUI.responseMessage("logout successful");
-			sc.close();
 			return;
-		}
 	}
 
 	// user is provided with options
@@ -229,7 +227,7 @@ public class Client {
 		Message sendMessageRequest = new Message(user, "logOutRequest", Status.request);
 		out.writeObject(sendMessageRequest);
 		out.flush();
-
+		sc.close();
 	}
 
 	private static void onSendMessage(User user, Scanner sc, ObjectOutputStream out, ObjectInputStream in)

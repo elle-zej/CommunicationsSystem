@@ -361,7 +361,7 @@ public class Server {
 			// sentMessage contains all info about sender and reciever,
 			// so only sentMessage required as the parameter
 
-			sendChat(sentMessage);
+			//sendChat(sentMessage);
 
 			// process fields of sent message
 			User sender = sentMessage.getSender();
