@@ -6,58 +6,58 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-
 public class Client {
 	// defining attributes
 	private User user;
-	//private GUI UI;
-    private Socket socket = null;
+	// private GUI UI;
+	private Socket socket = null;
 
-	//----------------------------------Driver----------------------------------------//
+	// ----------------------------------Driver----------------------------------------//
 	public static void main(String[] args) throws IOException, ClassNotFoundException {
 		Client client = new Client();
-		client.runClientLoop();
+		client.runClientLoop();		
 	}
 
 	public void runClientLoop() throws IOException, ClassNotFoundException {
 		Scanner sc = new Scanner(System.in);
 		InetAddress localhost = InetAddress.getLocalHost();
 		String IP = localhost.getHostAddress().trim();
+		 
+		Socket socket = new Socket(IP, 1200);
 
-		while (true) {
-			Socket socket = new Socket(IP, 1200);
-			this.socket = socket;
-			// get object input and also output objects
-			ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-			ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-			
-			// login and after successful login server sends you a user object with complete info
-			Boolean loggingIn = true;
-			
-			while(loggingIn) {
-				GUI.loginWindow(out, in);
-				//login(out, in);
-				Message serverMessage = (Message) in.readObject();
-				
-				if (serverMessage.getStatus().equals(Status.success)) {
-					GUI.responseMessage(serverMessage.getContent());
-					loggingIn = false;
-				}
-				else {
-					GUI.responseMessage(serverMessage.getContent());
-				}
-				
+		
+		//this was the schools IP
+		//Socket socket = new Socket("134.154.61.104", 1200);
+		this.socket = socket;
+		// get object input and also output objects
+		ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+		ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+
+		// login and after successful login server sends you a user object with complete
+		// info
+		Boolean loggingIn = true;
+
+		while (loggingIn) {
+			GUI.loginWindow(out, in);
+			// login(out, in);
+			Message serverMessage = (Message) in.readObject();
+
+			if (serverMessage.getStatus().equals(Status.success)) {
+				GUI.responseMessage(serverMessage.getContent());
+				loggingIn = false;
+			} else {
+				GUI.responseMessage(serverMessage.getContent());
 			}
-			
-			
-			User completeUser = (User) in.readObject();
-			
-			//open menu after successful login
-			userSession(completeUser, sc, out, in);
-			GUI.responseMessage("logout successful");
-			sc.close();
-			return;
+
 		}
+
+		User completeUser = (User) in.readObject();
+
+		// open menu after successful login
+		userSession(completeUser, sc, out, in);
+		GUI.responseMessage("logout successful");
+		sc.close();
+
 	}
 
 	// user is provided with options
@@ -104,7 +104,7 @@ public class Client {
 
 				System.out.println("Enter choice:" + "\n1. Send Message" + "\n2. View Conversations"
 						+ "\n3. View ALL Conversations" + "\n4. View Online" + "\n5. Log Out");
-				
+
 				int choice = sc.nextInt();
 				// consume \n
 				sc.nextLine();
@@ -134,17 +134,17 @@ public class Client {
 			}
 		}
 	}
-	
+
 	public void login(ObjectOutputStream out, ObjectInputStream in) {
 		Scanner sc = new Scanner(System.in);
 		boolean loggingIn = true;
 		while (loggingIn) {
-			//prompt for user name and password
+			// prompt for user name and password
 			System.out.println("Enter username: ");
 			String username = sc.nextLine().trim();
 			System.out.println("Enter password: ");
 			String password = sc.nextLine().trim();
-			//create a user with entered user name and password
+			// create a user with entered user name and password
 			user = new User(username, password);
 			try {
 				out.writeObject(user);
@@ -190,25 +190,29 @@ public class Client {
 
 				// consume the space after the integer
 				sc.nextLine();
-				
-				if(choice == -1) {return;}
-				
+
+				if (choice == -1) {
+					return;
+				}
+
 				String recipient = onlineUsers.get(choice - 1).getFullName();
 				System.out.println("Starting a chat with " + recipient + ": ");
-				//load the previous conversations
+				// load the previous conversations
 				onViewSpecificConversation(completeUser, recipient, sc, out, in);
-				//start chat
-				startChatSession(completeUser, recipient, sc, out, in);
+				// start chat
+				// startChatSession(completeUser, recipient, sc, out, in);
+
 			}
+
 		} catch (IOException | ClassNotFoundException e) {
 			e.printStackTrace();
 		}
 
 	}
 
-	public static void startChatSession(User completeUser,String recipient, Scanner sc, ObjectOutputStream out, ObjectInputStream in)
-			throws IOException, ClassNotFoundException {
-		
+	public static void startChatSession(User completeUser, String recipient, Scanner sc, ObjectOutputStream out,
+			ObjectInputStream in) throws IOException, ClassNotFoundException {
+
 		Message sendMessageRequest = new Message("sendMessageRequest", Status.request);
 		out.writeObject(sendMessageRequest);
 		out.flush();
@@ -239,7 +243,7 @@ public class Client {
 		Message sendMessageRequest = new Message(user, "sendMessageRequest", Status.request);
 		out.writeObject(sendMessageRequest);
 		out.flush();
-		
+
 		System.out.println("Enter recipients separated by commas: ");
 		// ASCII?
 		String input = sc.nextLine();
@@ -253,14 +257,14 @@ public class Client {
 
 		System.out.println("Enter message: ");
 		String msg = sc.nextLine();
-		//confirm to send message
+		// confirm to send message
 		System.out.println("Recipient(s): " + members);
 		System.out.println("Message: " + msg);
 		System.out.println("Enter 1 to send or -1 to exit");
-		
+
 		int choice = sc.nextInt();
 		sc.nextLine();
-		
+
 		while (true) {
 			if (choice == 1) {
 				Message message = new Message(user, members, msg, Status.request);
@@ -273,18 +277,17 @@ public class Client {
 				out.writeObject(message);
 				out.flush();
 				return;
-			}
-			else {
+			} else {
 				System.out.println("Enter 1 to send or -1 to exit");
 				choice = sc.nextInt();
 				sc.nextLine();
 			}
-		
+
 		}
 	}
-	
-	private static void onViewSpecificConversation(User user, String recepient, Scanner sc, ObjectOutputStream out, ObjectInputStream in)
-			throws IOException, ClassNotFoundException {
+
+	private static void onViewSpecificConversation(User user, String recepient, Scanner sc, ObjectOutputStream out,
+			ObjectInputStream in) throws IOException, ClassNotFoundException {
 		// Send request to viewConversations
 		Message viewConversationsRequest = new Message(user, "viewConversationsRequest", Status.request);
 		out.writeObject(viewConversationsRequest);
@@ -293,24 +296,28 @@ public class Client {
 		// take in all conversations
 		ConversationList conversations = (ConversationList) in.readObject();
 		int conversationChoice = -1;
-		
+
 		System.out.println("Messages ");
-		//get users each convo
+		// get users each convo
 		for (int i = 0; i < conversations.size(); i++) {
-			//iterate over each convo of each members
+			// iterate over each convo of each members
 			List<String> members = conversations.get(i).getRecipients(user);
 			String messageReceivedByString = members.get(0).toUpperCase();
-			
-			if(members.size() == 1 && (messageReceivedByString.equals(recepient.toUpperCase()))) {
-				System.out.println(conversations.get(i).getMessagesString());
+
+			if (members.size() == 1 && (messageReceivedByString.equals(recepient.toUpperCase()))) {
+				// System.out.println(conversations.get(i).getMessagesString());
+				conversationChoice = i;
 			}
 		}
-
+		if(conversationChoice == -1) {
+			System.out.println("You guys have no conversation history!!!");
+		}
+		else {
+			// print all elements of the conversation
+			System.out.println("\nConversation " + conversations.get(conversationChoice).getConversationIDString());
+			System.out.println(conversations.get(conversationChoice).getMessagesString());
+		}
 		
-		sc.nextLine();
-		// print all elements of the conversation
-		System.out.println("\nConversation " + conversations.get(conversationChoice).getConversationIDString());
-		System.out.println(conversations.get(conversationChoice).getMessagesString());
 		System.out.println("Enter: \n" + "1 to send message \n" + "-1 return to main menu");
 		// check user input
 		int choice;
@@ -318,8 +325,9 @@ public class Client {
 			if (sc.hasNextInt()) {
 				choice = sc.nextInt();
 				// consume next line character
-				sc.nextLine();
-				if (choice == 1 || choice == 2) {
+
+				// sc.nextLine();
+				if (choice == 1 || choice == -1) {
 					break;
 				} else {
 					System.out.println("Error: Enter a number 1 or -1: ");
@@ -337,8 +345,10 @@ public class Client {
 
 		while (true) {
 			if (choice == 1) {
-				System.out.println("Enter message: ");
-				String msg = sc.nextLine().trim();
+				
+				String msg = "This was supposed to be a live chat message";
+				System.out.println("Auto reply: " + msg);
+				
 				List<String> receivers = conversations.get(conversationChoice).getRecipients(user);
 				for (int i = 0; i < receivers.size(); i++) {
 					System.out.println(receivers.get(i));
@@ -346,10 +356,10 @@ public class Client {
 				Message message = new Message(user, receivers, msg, Status.request);
 				sendMessage(message, out, in);
 				return;
-			} else if (choice == 2) {
+			} else if (choice == -1) {
 				return;
 			} else {
-				System.out.println("Enter 1 or 2");
+				System.out.println("Enter 1 or -1");
 				choice = sc.nextInt();
 				// consume next line character
 				sc.nextLine();
@@ -357,18 +367,18 @@ public class Client {
 		}
 
 	}
-	
+
 	private static void onViewConversations(User user, Scanner sc, ObjectOutputStream out, ObjectInputStream in)
 			throws IOException, ClassNotFoundException {
 		// Send request to viewConversations
 		Message viewConversationsRequest = new Message(user, "viewConversationsRequest", Status.request);
 		out.writeObject(viewConversationsRequest);
 		out.flush();
-		 //server sends message confirmation
+		// server sends message confirmation
 //		Message serverMessage = (Message) in.readObject();
 
 		// take in all conversations
-		//@SuppressWarnings("unchecked")
+		// @SuppressWarnings("unchecked")
 		ConversationList conversations = (ConversationList) in.readObject();
 
 		System.out.println("Chats: ");
@@ -379,8 +389,10 @@ public class Client {
 
 		int conversationChoice = sc.nextInt();
 		sc.nextLine();
-		
-		if (conversationChoice == -1) {return;}
+
+		if (conversationChoice == -1) {
+			return;
+		}
 		// print all elements of the conversation
 		System.out.println("\nConversation " + conversations.get(conversationChoice).getConversationIDString());
 		System.out.println(conversations.get(conversationChoice).getMessagesString());
@@ -443,22 +455,22 @@ public class Client {
 //			System.out.println(serverMessage.getContent());
 //		}
 
-
 		ConversationList conversations = (ConversationList) in.readObject();
 
 		System.out.println("Chats: ");
 		for (int i = 0; i < conversations.size(); i++) {
 			System.out.println(i + " " + conversations.get(i).getMembersString());
 		}
-		
-		System.out.println("Enter number to view chat or -1 to exit:");
 
+		System.out.println("Enter number to view chat or -1 to exit:");
 
 		int conversationChoice = sc.nextInt();
 		sc.nextLine();
-		
-		if (conversationChoice == -1) {return;}
-		
+
+		if (conversationChoice == -1) {
+			return;
+		}
+
 		System.out.println("Conversation " + conversations.get(conversationChoice).getConversationIDString() + "\n");
 		System.out.println(conversations.get(conversationChoice).getMessagesString());
 
@@ -499,6 +511,7 @@ public class Client {
 //			System.out.println(serverMessage.getContent());
 //		}
 	}
+	
 	
 //	private static class MessageListener implements Runnable {
 //		private final Socket socket;
