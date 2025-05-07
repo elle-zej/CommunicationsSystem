@@ -511,5 +511,43 @@ public class Client {
 //			System.out.println(serverMessage.getContent());
 //		}
 	}
+	
+	
+//	private static class MessageListener implements Runnable {
+//		private final Socket socket;
+//		private User user;
+//		private ObjectOutputStream out;
+//		private ObjectInputStream in;
+//
+//		public MessageListener(Socket socket, User user, ObjectOutputStream out, ObjectInputStream in) {
+//			this.socket = socket;
+//			this.user = user;
+//			this.out = out;
+//			this.in = in;
+//		}
+//
+//		@Override
+//		public void run() {
+//			try {
+//				while(true) {
+//				Object obj = in.readObject();
+//				if (obj instanceof Message) {
+//					Message receivedMessage = (Message) obj;
+//					if(receivedMessage.getStatus().equals(Status.delievered)) {
+//					System.out.println("\n[Message from " + receivedMessage.getSender().getFullName() + "]: "
+//							+ receivedMessage.getContent());
+//				}
+//					else {
+//						return;
+//					}
+//				}
+//				}
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//			}
+//
+//		}
+//
+//	}
 
 }
