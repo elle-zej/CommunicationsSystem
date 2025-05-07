@@ -22,8 +22,12 @@ public class Client {
 		Scanner sc = new Scanner(System.in);
 		InetAddress localhost = InetAddress.getLocalHost();
 		String IP = localhost.getHostAddress().trim();
+		 
+		Socket socket = new Socket(IP, 1200);
 
-		Socket socket = new Socket("134.154.61.104", 1200);
+		
+		//this was the schools IP
+		//Socket socket = new Socket("134.154.61.104", 1200);
 		this.socket = socket;
 		// get object input and also output objects
 		ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
